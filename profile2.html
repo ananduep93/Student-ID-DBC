@@ -562,19 +562,7 @@
                     <span class="contact-arrow">↗</span>
                 </a>
             </div>
-        </div>
 
-       
-            </div>
-            
-            </div>
-        </div>
-
-       
-            </div>
-        </div>
-
-        
     </div>
 
     <!-- Scroll to top -->
@@ -619,10 +607,9 @@
 
         document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-        // Smooth scroll for contact items
+        // Smooth scroll / press effect for contact items (does NOT block navigation)
         document.querySelectorAll('.contact-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                e.preventDefault();
+            item.addEventListener('click', () => {
                 item.style.transform = 'scale(0.98)';
                 setTimeout(() => {
                     item.style.transform = '';

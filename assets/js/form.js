@@ -368,8 +368,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Submit profile details to api layer
   async function submitForm() {
-    // Final check
-    if (!validateStep(3)) {
+    // Final check — re-validate the last step (step 2) before submitting
+    if (!validateStep(2)) {
       toast.show("Please correct the form fields.", "error");
       return;
     }

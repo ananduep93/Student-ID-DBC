@@ -394,12 +394,12 @@ document.addEventListener('DOMContentLoaded', () => {
           s.githubUrl || '',
           s.portfolioUrl || '',
           Array.isArray(s.skills) ? s.skills.join("; ") : (s.skills || ''),
-          s.aboutMe || ''
+          (s.aboutMe || '').replace(/[\r\n]+/g, ' ')
         ];
-        csvRows.push(row.map(val => `"${val.replace(/"/g, '""')}"`).join(","));
+        csvRows.push(row.map(val => `"${String(val).replace(/"/g, '""')}"`).join(","));
       });
 
-      const csvString = csvRows.join("\n");
+      const csvString = csvRows.join("\r\n");
       const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       

@@ -25,8 +25,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Action Anchors
   const contactPhone = document.getElementById('contact-phone');
   const contactEmail = document.getElementById('contact-email');
-  const profilePhone = document.getElementById('profile-phone');
-  const profileEmail = document.getElementById('profile-email');
 
   const socialLinkedin = document.getElementById('social-linkedin');
   const socialInstagram = document.getElementById('social-instagram');
