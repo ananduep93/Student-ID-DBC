@@ -1,16 +1,20 @@
-import { initFirebase, isFirebaseConfigured } from './firebase-config.js';
+import { initFirebase, isFirebaseConfigured, ensureConfigLoaded } from './firebase-config.js';
 
 export let IMAGEBB_API_KEY = "YOUR_IMAGEBB_API_KEY";
+let imageBBKeyLoaded = false;
 
-// Try loading local config.js dynamically so it doesn't crash if ignored in Git
-try {
-  const configModule = await import('./config.js');
-  if (configModule && configModule.IMAGEBB_API_KEY) {
-    IMAGEBB_API_KEY = configModule.IMAGEBB_API_KEY;
+export const ensureImageBBKeyLoaded = async () => {
+  if (imageBBKeyLoaded) return;
+  try {
+    const configModule = await import('./config.js');
+    if (configModule && configModule.IMAGEBB_API_KEY) {
+      IMAGEBB_API_KEY = configModule.IMAGEBB_API_KEY;
+    }
+  } catch (e) {
+    console.warn("config.js not found or failed to load. Running in Mock/Template mode.");
   }
-} catch (e) {
-  console.warn("config.js not found or failed to load. Running in Mock/Template mode.");
-}
+  imageBBKeyLoaded = true;
+};
 
 const isImageBBConfigured = () => {
   return IMAGEBB_API_KEY && !IMAGEBB_API_KEY.startsWith("YOUR_");
@@ -110,6 +114,8 @@ const mockDB = {
  * Fallback: Base64 dataURL stored locally in Mock Mode
  */
 export const uploadProfilePhoto = async (file) => {
+  await ensureImageBBKeyLoaded();
+  
   // Simulate network delay for good UX testing
   await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -173,8 +179,9 @@ export const saveStudentProfile = async (profileData) => {
       );
       return uniqueId;
     } catch (error) {
-      console.error("Firestore save error:", error);
-      throw error;
+      console.error("Firestore save error, falling back to local storage:", error);
+      mockDB.addProfile(studentDoc);
+      return uniqueId;
     }
   } else {
     // Save to localStorage
@@ -210,8 +217,8 @@ export const getStudentProfile = async (id) => {
       }
       return null;
     } catch (error) {
-      console.error("Firestore get error:", error);
-      throw error;
+      console.error("Firestore get error, falling back to local storage:", error);
+      return mockDB.getProfile(id);
     }
   } else {
     return mockDB.getProfile(id);

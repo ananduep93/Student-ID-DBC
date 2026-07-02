@@ -11,15 +11,20 @@ export let firebaseConfig = {
   measurementId: "YOUR_FIREBASE_MEASUREMENT_ID"
 };
 
-// Try loading local config.js dynamically so it doesn't crash if ignored in Git
-try {
-  const configModule = await import('./config.js');
-  if (configModule && configModule.firebaseConfig) {
-    firebaseConfig = configModule.firebaseConfig;
+let configLoaded = false;
+
+export const ensureConfigLoaded = async () => {
+  if (configLoaded) return;
+  try {
+    const configModule = await import('./config.js');
+    if (configModule && configModule.firebaseConfig) {
+      firebaseConfig = configModule.firebaseConfig;
+    }
+  } catch (e) {
+    console.warn("config.js not found or failed to load. Running in Mock/Template mode.");
   }
-} catch (e) {
-  console.warn("config.js not found or failed to load. Running in Mock/Template mode.");
-}
+  configLoaded = true;
+};
 
 // Check if actual config has been provided
 export const isFirebaseConfigured = () => {
@@ -36,6 +41,8 @@ let db = null;
 let storage = null;
 
 export const initFirebase = async () => {
+  await ensureConfigLoaded();
+  
   if (!isFirebaseConfigured()) {
     console.log("Firebase credentials are not set. The application is running in MOCK mode using localStorage.");
     return { db: null, storage: null };
