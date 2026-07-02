@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student ID - Create Profile</title>
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="./assets/css/form.css">
+</head>
+<body>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay" class="loading-overlay" aria-hidden="true">
+    <div class="spinner"></div>
+    <div id="loading-text" class="loading-text">Uploading files and generating profile...</div>
+  </div>
+
+  <div class="bg-gradients"></div>
+  <div class="bg-gradients-extra"></div>
+
+  <div class="container">
+    <header>
+      <a href="./index.html" class="logo">
+        <div class="logo-icon">S</div>
+        <div class="logo-text">STUDENT<span>ID</span></div>
+      </a>
+      <a href="./index.html" class="btn btn-secondary btn-sm" style="padding: 0.5rem 1rem; font-size: 0.85rem;">Cancel</a>
+    </header>
+
+    <main class="form-wrapper">
+      <!-- Form Container Card -->
+      <div class="glass-card form-header-card">
+        <div class="form-title-group">
+          <h1>Student Registration</h1>
+          <p>Complete the details below to generate your official Digital ID Profile.</p>
+        </div>
+      </div>
+
+      <!-- Stepper Progress Bar -->
+      <div class="stepper-container" aria-label="Progress">
+        <div id="stepper-progress" class="stepper-progress"></div>
+        
+        <div class="step-node active" id="step-node-1" data-step="1">
+          1
+          <span class="step-label">Personal info</span>
+        </div>
+        
+        <div class="step-node" id="step-node-2" data-step="2">
+          2
+          <span class="step-label">Contact & Socials</span>
+        </div>
+        
+        <div class="step-node" id="step-node-3" data-step="3">
+          3
+          <span class="step-label">Bio & Skills</span>
+        </div>
+      </div>
+
+      <!-- Main Form -->
+      <form id="student-form" novalidate class="glass-card">
+        
+        <!-- ==================== STEP 1: PERSONAL DETAILS ==================== -->
+        <div class="form-step-panel active" id="step-panel-1">
+          
+          <div class="form-group">
+            <label class="form-label" for="full-name">
+              Full Name <span class="required-dot">*</span>
+            </label>
+            <input type="text" id="full-name" name="fullName" class="glass-input" placeholder="Enter your full name" required>
+            <div class="error-msg">Please enter your name</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">
+              Profile Photo <span class="required-dot">*</span>
+            </label>
+            
+            <input type="file" id="photo-input" name="photoFile" accept="image/png, image/jpeg, image/webp" class="sr-only" required>
+            
+            <!-- Upload Drop Zone -->
+            <div class="photo-upload-zone" id="upload-zone">
+              <div class="upload-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+              </div>
+              <div class="upload-prompt" id="upload-prompt">
+                <span>Click to upload</span> or drag and drop<br>
+                <span class="input-hint">JPG, PNG or WebP (max 5MB)</span>
+              </div>
+            </div>
+
+            <!-- Preview Area -->
+            <div class="preview-container" id="preview-container">
+              <div class="image-preview-circle">
+                <img id="preview-image" src="" alt="Selected profile photo preview">
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="remove-photo-btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Change Photo</button>
+            </div>
+
+            <div class="error-msg" id="photo-error-msg">Please upload a profile photo (JPG, PNG, WebP)</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="college">
+              College <span class="required-dot">*</span>
+            </label>
+            <input type="text" id="college" name="college" class="glass-input" value="DON BOSCO COLLEGE MAMPETTA MUKKAM" readonly required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="department">
+              Department <span class="required-dot">*</span>
+            </label>
+            <select id="department" name="department" class="glass-input" required>
+              <option value="" disabled selected>Select Department</option>
+              <option value="AI & DS">AI & DS</option>
+              <option value="AVIATION">AVIATION</option>
+            </select>
+            <div class="error-msg">Please select a department</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="register-number">
+              Register Number <span class="required-dot">*</span>
+            </label>
+            <input type="text" id="register-number" name="registerNumber" class="glass-input" placeholder="e.g., DBC22AD001" required>
+            <div class="error-msg">Please enter your university register number</div>
+          </div>
+
+        </div>
+
+        <!-- ==================== STEP 2: CONTACTS & SOCIALS ==================== -->
+        <div class="form-step-panel" id="step-panel-2">
+          
+          <div class="form-group">
+            <label class="form-label" for="phone-number">
+              Phone Number <span class="required-dot">*</span>
+            </label>
+            <input type="tel" id="phone-number" name="phoneNumber" class="glass-input" placeholder="e.g., 9876543210" required>
+            <div class="error-msg">Please enter a valid 10-digit phone number</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">
+              Email Address <span class="required-dot">*</span>
+            </label>
+            <input type="email" id="email" name="email" class="glass-input" placeholder="name@domain.com" required>
+            <div class="error-msg">Please enter a valid email address</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="linkedin-url">
+              LinkedIn URL <span class="required-dot">*</span>
+            </label>
+            <input type="url" id="linkedin-url" name="linkedinUrl" class="glass-input" placeholder="https://linkedin.com/in/username" required>
+            <div class="error-msg">Please enter a valid LinkedIn URL (https://...)</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="instagram-url">
+              Instagram URL <span class="input-hint">(Optional)</span>
+            </label>
+            <input type="url" id="instagram-url" name="instagramUrl" class="glass-input" placeholder="https://instagram.com/username">
+            <div class="error-msg">Please enter a valid URL (https://...)</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="github-url">
+              GitHub URL <span class="input-hint">(Optional)</span>
+            </label>
+            <input type="url" id="github-url" name="githubUrl" class="glass-input" placeholder="https://github.com/username">
+            <div class="error-msg">Please enter a valid URL (https://...)</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="portfolio-url">
+              Portfolio URL <span class="input-hint">(Optional)</span>
+            </label>
+            <input type="url" id="portfolio-url" name="portfolioUrl" class="glass-input" placeholder="https://mywebsite.com">
+            <div class="error-msg">Please enter a valid URL (https://...)</div>
+          </div>
+
+        </div>
+
+        <!-- ==================== STEP 3: BIO & SKILLS ==================== -->
+        <div class="form-step-panel" id="step-panel-3">
+          
+          <div class="form-group">
+            <label class="form-label" for="skills-input">
+              Skills <span class="input-hint">(Optional - Press Enter or comma to add)</span>
+            </label>
+            <div class="skills-input-container" id="skills-container">
+              <!-- Rendered tags will appear here -->
+              <input type="text" id="skills-input" class="skills-input-field" placeholder="e.g. JavaScript, Python, UI Design">
+            </div>
+            <!-- Hidden input to store skills array as a JSON string -->
+            <input type="hidden" id="skills-data" name="skills" value="[]">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="about-me">
+              About Me / Bio <span class="required-dot">*</span>
+            </label>
+            <textarea id="about-me" name="aboutMe" class="glass-input" rows="4" placeholder="Tell us about yourself, interests, and career goals..." required></textarea>
+            <div class="char-count" id="char-counter">0 / 200</div>
+            <div class="error-msg">Bio is required (must be between 10 and 200 characters)</div>
+          </div>
+
+        </div>
+
+        <!-- Form Navigation Buttons -->
+        <div class="form-nav-buttons">
+          <button type="button" id="prev-btn" class="btn btn-secondary" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Back
+          </button>
+          
+          <button type="button" id="next-btn" class="btn btn-primary">
+            Next
+            <svg id="next-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+          </button>
+        </div>
+
+      </form>
+    </main>
+  </div>
+
+  <footer style="margin-top: 2rem;">
+    <p>&copy; 2026 Don Bosco College Mampetta. All rights reserved.</p>
+  </footer>
+
+  <script type="module" src="./assets/js/form.js"></script>
+</body>
+</html>
