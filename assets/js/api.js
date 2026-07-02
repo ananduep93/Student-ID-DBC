@@ -1,80 +1,58 @@
-import { initFirebase, isFirebaseConfigured, ensureConfigLoaded } from './firebase-config.js';
+import { initFirebase, isFirebaseConfigured, getDb } from './firebase-config.js';
+import { IMAGEBB_API_KEY } from './config.js';
 
-export let IMAGEBB_API_KEY = "YOUR_IMAGEBB_API_KEY";
-let imageBBKeyLoaded = false;
-
-export const ensureImageBBKeyLoaded = async () => {
-  if (imageBBKeyLoaded) return;
-  try {
-    const configModule = await import('./config.js');
-    if (configModule && configModule.IMAGEBB_API_KEY) {
-      IMAGEBB_API_KEY = configModule.IMAGEBB_API_KEY;
-    }
-  } catch (e) {
-    console.warn("config.js not found or failed to load. Running in Mock/Template mode.");
-  }
-  imageBBKeyLoaded = true;
-};
+// ─── ImageBB Configuration ───────────────────────────────────────────────────
 
 const isImageBBConfigured = () => {
   return IMAGEBB_API_KEY && !IMAGEBB_API_KEY.startsWith("YOUR_");
 };
 
-// Timeout helper for promise-based operations
+// ─── Firebase Singleton ──────────────────────────────────────────────────────
+
+let firebaseReady = false;
+
+const ensureFirebase = async () => {
+  if (!firebaseReady) {
+    await initFirebase();
+    firebaseReady = true;
+  }
+};
+
+// ─── Timeout Helper ──────────────────────────────────────────────────────────
+
 const withTimeout = (promise, ms, errorMessage) => {
   let timeoutId;
   const timeoutPromise = new Promise((_, reject) => {
-    timeoutId = setTimeout(() => {
-      reject(new Error(errorMessage));
-    }, ms);
+    timeoutId = setTimeout(() => reject(new Error(errorMessage)), ms);
   });
   return Promise.race([
-    promise.then((res) => {
-      clearTimeout(timeoutId);
-      return res;
-    }),
+    promise.then(res => { clearTimeout(timeoutId); return res; }),
     timeoutPromise
   ]);
 };
 
-// Database state
-let db = null;
-let storage = null;
-let firebasePromise = null;
+// ─── Unique ID Generator ─────────────────────────────────────────────────────
 
-// Initialize Firebase connection
-const getFirebaseInstance = () => {
-  if (!firebasePromise) {
-    firebasePromise = initFirebase().then((instances) => {
-      db = instances.db;
-      storage = instances.storage;
-      return { db, storage };
-    });
-  }
-  return firebasePromise;
-};
-
-// Helper: Convert File to Base64 (for mock storage fallback)
-const fileToBase64 = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });
-};
-
-// Helper: Generate Unique ID
 const generateUniqueId = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let autoId = '';
+  let id = '';
   for (let i = 0; i < 20; i++) {
-    autoId += chars.charAt(Math.floor(Math.random() * chars.length));
+    id += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return autoId;
+  return id;
 };
 
-// MOCK Database Layer (localStorage)
+// ─── Helper: File → Base64 ───────────────────────────────────────────────────
+
+const fileToBase64 = (file) => new Promise((resolve, reject) => {
+  const reader = new FileReader();
+  reader.readAsDataURL(file);
+  reader.onload = () => resolve(reader.result);
+  reader.onerror = (err) => reject(err);
+});
+
+// ─── MOCK Database (localStorage fallback) ───────────────────────────────────
+
 const mockDB = {
   getProfiles: () => {
     const data = localStorage.getItem('student_profiles');
@@ -89,8 +67,7 @@ const mockDB = {
     mockDB.saveProfiles(profiles);
   },
   getProfile: (id) => {
-    const profiles = mockDB.getProfiles();
-    return profiles.find(p => p.id === id) || null;
+    return mockDB.getProfiles().find(p => p.id === id) || null;
   },
   updateProfile: (id, updatedData) => {
     const profiles = mockDB.getProfiles();
@@ -103,24 +80,24 @@ const mockDB = {
     return false;
   },
   deleteProfile: (id) => {
-    const profiles = mockDB.getProfiles();
-    const filtered = profiles.filter(p => p.id !== id);
-    mockDB.saveProfiles(filtered);
+    const profiles = mockDB.getProfiles().filter(p => p.id !== id);
+    mockDB.saveProfiles(profiles);
   }
 };
 
-/**
- * 1. Upload Student Profile Photo to ImageBB
- * Fallback: Base64 dataURL stored locally in Mock Mode
- */
-export const uploadProfilePhoto = async (file) => {
-  await ensureImageBBKeyLoaded();
-  
-  // Simulate network delay for good UX testing
-  await new Promise(resolve => setTimeout(resolve, 800));
+// ─── Firestore Helpers ───────────────────────────────────────────────────────
 
+const getFirestoreFunctions = async () => {
+  return await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// 1. Upload Profile Photo → ImgBB (fallback: Base64)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const uploadProfilePhoto = async (file) => {
   if (!isImageBBConfigured()) {
-    console.log("ImageBB is not configured. Converting image to Base64 locally.");
+    console.log("ImgBB key not set. Storing image as Base64 locally.");
     return await fileToBase64(file);
   }
 
@@ -128,96 +105,88 @@ export const uploadProfilePhoto = async (file) => {
     const formData = new FormData();
     formData.append("image", file);
 
-    const response = await fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
-      method: "POST",
-      body: formData
-    });
+    const response = await withTimeout(
+      fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
+        method: "POST",
+        body: formData
+      }),
+      15000,
+      "ImgBB upload timed out (15s). Check your internet connection."
+    );
 
     const result = await response.json();
+
     if (result.success) {
-      return result.data.url; // Returns the permanent hosted image URL
+      console.log("ImgBB upload success:", result.data.url);
+      return result.data.url;
     } else {
-      throw new Error(result.error?.message || "Failed to upload to ImageBB");
+      throw new Error(result.error?.message || "ImgBB returned an error response.");
     }
   } catch (error) {
-    console.error("ImageBB upload error:", error);
-    throw error;
+    console.error("ImgBB upload failed, falling back to Base64:", error);
+    // Graceful fallback: store image as Base64 in Firestore if ImgBB fails
+    return await fileToBase64(file);
   }
 };
 
-/**
- * 2. Save Student Profile details
- */
+// ═══════════════════════════════════════════════════════════════════════════════
+// 2. Save Student Profile → Firestore (fallback: localStorage)
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export const saveStudentProfile = async (profileData) => {
   const uniqueId = generateUniqueId();
   const submissionDate = new Date().toISOString();
-  
+
   const studentDoc = {
     id: uniqueId,
     ...profileData,
     submissionDate
   };
 
-  // Wait for Firebase initialization attempt (timeout in 6 seconds)
-  try {
-    await withTimeout(getFirebaseInstance(), 6000, "Firebase initialization timed out.");
-  } catch (err) {
-    console.warn("Firebase connection timed out. Falling back to local storage.", err);
-    mockDB.addProfile(studentDoc);
-    return uniqueId;
-  }
+  await ensureFirebase();
+  const db = getDb();
 
   if (isFirebaseConfigured() && db) {
     try {
-      const { doc, setDoc } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
-      
-      // Save document to Firestore with a 6-second timeout
+      const { doc, setDoc } = await getFirestoreFunctions();
       await withTimeout(
         setDoc(doc(db, "students", uniqueId), studentDoc),
-        6000,
-        "Firestore write timed out. Make sure your Firestore Database is created in the Firebase console and security rules allow public writes."
+        10000,
+        "Firestore write timed out. Check your Firestore rules allow public writes."
       );
+      console.log("Firestore: profile saved with ID:", uniqueId);
       return uniqueId;
     } catch (error) {
-      console.error("Firestore save error, falling back to local storage:", error);
+      console.error("Firestore save error, falling back to localStorage:", error);
       mockDB.addProfile(studentDoc);
       return uniqueId;
     }
   } else {
-    // Save to localStorage
+    console.log("Firebase not configured. Saving to localStorage.");
     mockDB.addProfile(studentDoc);
     return uniqueId;
   }
 };
 
-/**
- * 3. Fetch Single Student Profile
- */
+// ═══════════════════════════════════════════════════════════════════════════════
+// 3. Get Single Student Profile → Firestore (fallback: localStorage)
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export const getStudentProfile = async (id) => {
-  try {
-    await withTimeout(getFirebaseInstance(), 6000, "Firebase initialization timed out.");
-  } catch (err) {
-    console.warn("Firebase connection timed out. Falling back to local storage.", err);
-    return mockDB.getProfile(id);
-  }
+  await ensureFirebase();
+  const db = getDb();
 
   if (isFirebaseConfigured() && db) {
     try {
-      const { doc, getDoc } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
-      const docRef = doc(db, "students", id);
-      
+      const { doc, getDoc } = await getFirestoreFunctions();
       const docSnap = await withTimeout(
-        getDoc(docRef),
-        6000,
-        "Firestore fetch timed out. Check your database connection."
+        getDoc(doc(db, "students", id)),
+        10000,
+        "Firestore fetch timed out."
       );
-      
-      if (docSnap.exists()) {
-        return docSnap.data();
-      }
-      return null;
+      return docSnap.exists() ? docSnap.data() : null;
     } catch (error) {
-      console.error("Firestore get error, falling back to local storage:", error);
+      console.error("Firestore get error, falling back to localStorage:", error);
       return mockDB.getProfile(id);
     }
   } else {
@@ -225,35 +194,28 @@ export const getStudentProfile = async (id) => {
   }
 };
 
-/**
- * 4. Fetch All Student Profiles (Admin Dashboard)
- */
+// ═══════════════════════════════════════════════════════════════════════════════
+// 4. Get All Student Profiles → Firestore (fallback: localStorage)
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export const getAllStudentProfiles = async () => {
-  try {
-    await withTimeout(getFirebaseInstance(), 6000, "Firebase initialization timed out.");
-  } catch (err) {
-    console.warn("Firebase connection timed out. Falling back to local storage.", err);
-    return mockDB.getProfiles().sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
-  }
+  await ensureFirebase();
+  const db = getDb();
 
   if (isFirebaseConfigured() && db) {
     try {
-      const { collection, getDocs, query, orderBy } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
+      const { collection, getDocs, query, orderBy } = await getFirestoreFunctions();
       const q = query(collection(db, "students"), orderBy("submissionDate", "desc"));
-      
-      const querySnapshot = await withTimeout(
+      const snapshot = await withTimeout(
         getDocs(q),
-        6000,
-        "Firestore query timed out. Check your database connection."
+        10000,
+        "Firestore query timed out."
       );
-      
       const students = [];
-      querySnapshot.forEach((doc) => {
-        students.push(doc.data());
-      });
+      snapshot.forEach(docSnap => students.push(docSnap.data()));
       return students;
     } catch (error) {
-      console.error("Firestore get all error, falling back to local storage:", error);
+      console.error("Firestore getAll error, falling back to localStorage:", error);
       return mockDB.getProfiles().sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
     }
   } else {
@@ -261,30 +223,25 @@ export const getAllStudentProfiles = async () => {
   }
 };
 
-/**
- * 5. Update Student Profile Details (Admin Dashboard)
- */
+// ═══════════════════════════════════════════════════════════════════════════════
+// 5. Update Student Profile → Firestore (fallback: localStorage)
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export const updateStudentProfile = async (id, updatedFields) => {
-  try {
-    await withTimeout(getFirebaseInstance(), 6000, "Firebase initialization timed out.");
-  } catch (err) {
-    console.warn("Firebase connection timed out. Falling back to local storage.", err);
-    return mockDB.updateProfile(id, updatedFields);
-  }
+  await ensureFirebase();
+  const db = getDb();
 
   if (isFirebaseConfigured() && db) {
     try {
-      const { doc, updateDoc } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
-      const docRef = doc(db, "students", id);
-      
+      const { doc, updateDoc } = await getFirestoreFunctions();
       await withTimeout(
-        updateDoc(docRef, updatedFields),
-        6000,
-        "Firestore update timed out. Check your database connection."
+        updateDoc(doc(db, "students", id), updatedFields),
+        10000,
+        "Firestore update timed out."
       );
       return true;
     } catch (error) {
-      console.error("Firestore update error, falling back to local storage:", error);
+      console.error("Firestore update error, falling back to localStorage:", error);
       return mockDB.updateProfile(id, updatedFields);
     }
   } else {
@@ -292,31 +249,25 @@ export const updateStudentProfile = async (id, updatedFields) => {
   }
 };
 
-/**
- * 6. Delete Student Profile (Admin Dashboard)
- */
+// ═══════════════════════════════════════════════════════════════════════════════
+// 6. Delete Student Profile → Firestore (fallback: localStorage)
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export const deleteStudentProfile = async (id) => {
-  try {
-    await withTimeout(getFirebaseInstance(), 6000, "Firebase initialization timed out.");
-  } catch (err) {
-    console.warn("Firebase connection timed out. Falling back to local storage.", err);
-    mockDB.deleteProfile(id);
-    return true;
-  }
+  await ensureFirebase();
+  const db = getDb();
 
   if (isFirebaseConfigured() && db) {
     try {
-      const { doc, deleteDoc } = await import("https://www.gstatic.com/firebasejs/12.15.0/firebase-firestore.js");
-      const docRef = doc(db, "students", id);
-      
+      const { doc, deleteDoc } = await getFirestoreFunctions();
       await withTimeout(
-        deleteDoc(docRef),
-        6000,
-        "Firestore delete timed out. Check your database connection."
+        deleteDoc(doc(db, "students", id)),
+        10000,
+        "Firestore delete timed out."
       );
       return true;
     } catch (error) {
-      console.error("Firestore delete error, falling back to local storage:", error);
+      console.error("Firestore delete error, falling back to localStorage:", error);
       mockDB.deleteProfile(id);
       return true;
     }
@@ -326,7 +277,7 @@ export const deleteStudentProfile = async (id) => {
   }
 };
 
-// Make api functions globally available if needed
+// Expose to window for debugging
 window.api = {
   uploadProfilePhoto,
   saveStudentProfile,

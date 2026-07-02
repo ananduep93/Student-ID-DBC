@@ -115,7 +115,7 @@ body.profile-page-theme .logo-text span {
     0 20px 60px rgba(0,0,0,0.8),
     inset 0 1px 0 rgba(255,255,255,0.05);
   animation: cardReveal 1s ease-out;
-  text-align: center;
+  text-align: left;
 }
 
 @keyframes cardReveal {
@@ -141,9 +141,9 @@ body.profile-page-theme .logo-text span {
 
 .name {
   font-family: 'Playfair Display', serif;
-  font-size: 46px;
+  font-size: 52px;
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1.0;
   letter-spacing: -2px;
   margin-bottom: 8px;
   background: linear-gradient(180deg, var(--white), #999);
@@ -155,9 +155,9 @@ body.profile-page-theme .logo-text span {
 
 .surname {
   font-family: 'Playfair Display', serif;
-  font-size: 46px;
+  font-size: 52px;
   font-weight: 900;
-  line-height: 1.1;
+  line-height: 1.0;
   letter-spacing: -2px;
   background: linear-gradient(135deg, var(--gold-light), var(--gold));
   -webkit-background-clip: text;
@@ -437,7 +437,6 @@ body.profile-page-theme footer {
 /* Mobile optimization */
 @media (max-width: 480px) {
   .name, .surname { font-size: 38px; }
-  .profile-section { flex-direction: column; text-align: center; }
 }
 
 /* Loading animation helper */
