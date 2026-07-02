@@ -13,13 +13,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Data Elements
   const profileImg = document.getElementById('profile-img');
-  const profileName = document.getElementById('profile-name');
+  const profileFirstName = document.getElementById('profile-first-name');
+  const profileLastName = document.getElementById('profile-last-name');
+  const profileDesignation = document.getElementById('profile-designation');
   const profileDept = document.getElementById('profile-dept');
   const profileCollege = document.getElementById('profile-college');
   const profileBio = document.getElementById('profile-bio');
   const profileSkills = document.getElementById('profile-skills');
   const skillsSection = document.getElementById('skills-section');
-  const socialsSection = document.getElementById('socials-section');
 
   // Action Anchors
   const contactPhone = document.getElementById('contact-phone');
@@ -67,30 +68,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderProfileCard(student) {
     // Basic Details
     profileImg.src = student.photoUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=256&auto=format&fit=crop';
-    profileName.textContent = student.fullName;
-    profileDept.textContent = student.department;
-    profileCollege.textContent = student.college;
-    profileBio.textContent = student.aboutMe;
+    
+    // Split full name into first and last name
+    const nameParts = (student.fullName || "").trim().split(/\s+/);
+    let firstName = student.fullName || "";
+    let lastName = "";
+    if (nameParts.length > 1) {
+      lastName = nameParts.pop();
+      firstName = nameParts.join(" ");
+    }
+    profileFirstName.textContent = firstName;
+    profileLastName.textContent = lastName;
 
-    // Department color code update
-    if (student.department === 'AVIATION') {
-      profileDept.style.background = 'rgba(6, 182, 212, 0.1)';
-      profileDept.style.color = 'var(--accent-secondary)';
-      profileDept.style.borderColor = 'rgba(6, 182, 212, 0.25)';
+    // Designation and Department mapping
+    if (student.department === "AI & DS") {
+      profileDesignation.textContent = "B.Sc";
+      profileDept.textContent = "AI & DS";
+    } else if (student.department === "AVIATION") {
+      profileDesignation.textContent = "BBA";
+      profileDept.textContent = "AVIATION & LOGISTICS";
     } else {
-      profileDept.style.background = 'rgba(99, 102, 241, 0.1)';
-      profileDept.style.color = 'var(--accent-primary)';
-      profileDept.style.borderColor = 'rgba(99, 102, 241, 0.25)';
+      profileDesignation.textContent = "Student";
+      profileDept.textContent = student.department || "";
     }
 
-    // Skills Render
+    profileCollege.textContent = student.college || "DON BOSCO COLLEGE MAMPETTA";
+    profileBio.textContent = student.aboutMe;
+
+    // Skills Render (using .skill-tag class)
     profileSkills.innerHTML = '';
     const skillsArray = Array.isArray(student.skills) ? student.skills : [];
     if (skillsArray.length > 0) {
-      skillsSection.style.display = 'flex';
+      skillsSection.style.display = 'block';
       skillsArray.forEach(skill => {
         const span = document.createElement('span');
-        span.className = 'skill-badge';
+        span.className = 'skill-tag';
         span.textContent = skill;
         profileSkills.appendChild(span);
       });
@@ -100,9 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Click to Call / Email setups
     contactPhone.href = `tel:${student.phoneNumber}`;
-    profilePhone.textContent = student.phoneNumber;
     contactEmail.href = `mailto:${student.email}`;
-    profileEmail.textContent = student.email;
 
     // Social Links visibility
     let visibleSocials = 0;
@@ -137,12 +147,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       visibleSocials++;
     } else {
       socialPortfolio.style.display = 'none';
-    }
-
-    if (visibleSocials === 0) {
-      socialsSection.style.display = 'none';
-    } else {
-      socialsSection.style.display = 'flex';
     }
 
     // Generate QR Code client-side
