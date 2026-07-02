@@ -418,7 +418,8 @@ header {
 }
 
 .logo-icon {
-  width: 40px;
+  min-width: 42px;
+  padding: 0 0.5rem;
   height: 40px;
   background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
   border-radius: 12px;
@@ -429,7 +430,7 @@ header {
   font-family: 'Outfit', sans-serif;
   font-weight: 800;
   color: white;
-  font-size: 1.25rem;
+  font-size: 0.95rem;
 }
 
 .logo-text {
