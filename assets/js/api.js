@@ -253,8 +253,8 @@ export const getAllStudentProfiles = async () => {
       });
       return students;
     } catch (error) {
-      console.error("Firestore get all error:", error);
-      throw error;
+      console.error("Firestore get all error, falling back to local storage:", error);
+      return mockDB.getProfiles().sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
     }
   } else {
     return mockDB.getProfiles().sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
@@ -284,8 +284,8 @@ export const updateStudentProfile = async (id, updatedFields) => {
       );
       return true;
     } catch (error) {
-      console.error("Firestore update error:", error);
-      throw error;
+      console.error("Firestore update error, falling back to local storage:", error);
+      return mockDB.updateProfile(id, updatedFields);
     }
   } else {
     return mockDB.updateProfile(id, updatedFields);
@@ -316,8 +316,9 @@ export const deleteStudentProfile = async (id) => {
       );
       return true;
     } catch (error) {
-      console.error("Firestore delete error:", error);
-      throw error;
+      console.error("Firestore delete error, falling back to local storage:", error);
+      mockDB.deleteProfile(id);
+      return true;
     }
   } else {
     mockDB.deleteProfile(id);
