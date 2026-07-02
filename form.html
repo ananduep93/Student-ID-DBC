@@ -42,17 +42,12 @@
         
         <div class="step-node active" id="step-node-1" data-step="1">
           1
-          <span class="step-label">Personal info</span>
+          <span class="step-label">Personal Info</span>
         </div>
         
         <div class="step-node" id="step-node-2" data-step="2">
           2
-          <span class="step-label">Contact & Socials</span>
-        </div>
-        
-        <div class="step-node" id="step-node-3" data-step="3">
-          3
-          <span class="step-label">Bio & Skills</span>
+          <span class="step-label">Details & Bio</span>
         </div>
       </div>
 
@@ -117,15 +112,6 @@
             </select>
             <div class="error-msg">Please select a department</div>
           </div>
-
-          <div class="form-group">
-            <label class="form-label" for="register-number">
-              Register Number <span class="required-dot">*</span>
-            </label>
-            <input type="text" id="register-number" name="registerNumber" class="glass-input" placeholder="e.g., DBC22AD001" required>
-            <div class="error-msg">Please enter your university register number</div>
-          </div>
-
         </div>
 
         <!-- ==================== STEP 2: CONTACTS & SOCIALS ==================== -->
@@ -149,9 +135,9 @@
 
           <div class="form-group">
             <label class="form-label" for="linkedin-url">
-              LinkedIn URL <span class="required-dot">*</span>
+              LinkedIn URL <span class="input-hint">(Optional)</span>
             </label>
-            <input type="url" id="linkedin-url" name="linkedinUrl" class="glass-input" placeholder="https://linkedin.com/in/username" required>
+            <input type="url" id="linkedin-url" name="linkedinUrl" class="glass-input" placeholder="https://linkedin.com/in/username">
             <div class="error-msg">Please enter a valid LinkedIn URL (https://...)</div>
           </div>
 
@@ -176,14 +162,6 @@
               Portfolio URL <span class="input-hint">(Optional)</span>
             </label>
             <input type="url" id="portfolio-url" name="portfolioUrl" class="glass-input" placeholder="https://mywebsite.com">
-            <div class="error-msg">Please enter a valid URL (https://...)</div>
-          </div>
-
-        </div>
-
-        <!-- ==================== STEP 3: BIO & SKILLS ==================== -->
-        <div class="form-step-panel" id="step-panel-3">
-          
           <div class="form-group">
             <label class="form-label" for="skills-input">
               Skills <span class="input-hint">(Optional - Press Enter or comma to add)</span>

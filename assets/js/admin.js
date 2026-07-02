@@ -46,7 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const editId = document.getElementById('edit-id');
   const editName = document.getElementById('edit-name');
   const editDept = document.getElementById('edit-dept');
-  const editReg = document.getElementById('edit-reg');
   const editPhone = document.getElementById('edit-phone');
   const editEmail = document.getElementById('edit-email');
   const editBio = document.getElementById('edit-bio');
@@ -134,7 +133,6 @@ document.addEventListener('DOMContentLoaded', () => {
     filteredData = studentsData.filter(student => {
       const matchesSearch = 
         student.fullName.toLowerCase().includes(search) ||
-        student.registerNumber.toLowerCase().includes(search) ||
         student.email.toLowerCase().includes(search);
         
       const matchesDept = deptFilter === 'ALL' || student.department === deptFilter;
@@ -191,9 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </td>
         <td data-label="Department">
           <span class="dept-badge ${deptClass}">${student.department}</span>
-        </td>
-        <td data-label="Register No">
-          <span style="font-family: monospace; font-size: 0.9rem;">${student.registerNumber}</span>
         </td>
         <td data-label="Contact">
           <div style="display: flex; flex-direction: column; gap: 0.15rem; font-size: 0.85rem;">
@@ -320,7 +315,6 @@ document.addEventListener('DOMContentLoaded', () => {
     editId.value = student.id;
     editName.value = student.fullName;
     editDept.value = student.department;
-    editReg.value = student.registerNumber;
     editPhone.value = student.phoneNumber;
     editEmail.value = student.email;
     editBio.value = student.aboutMe;
@@ -350,7 +344,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const updatedFields = {
       fullName: editName.value.trim(),
       department: editDept.value,
-      registerNumber: editReg.value.trim(),
       phoneNumber: editPhone.value.trim(),
       email: editEmail.value.trim(),
       aboutMe: editBio.value.trim()
@@ -378,7 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const headers = [
-        "ID", "Full Name", "College", "Department", "Register Number",
+        "ID", "Full Name", "College", "Department",
         "Phone Number", "Email", "Submission Date", "Photo URL",
         "LinkedIn", "Instagram", "GitHub", "Portfolio", "Skills", "Bio"
       ];
@@ -392,7 +385,6 @@ document.addEventListener('DOMContentLoaded', () => {
           s.fullName || '',
           s.college || '',
           s.department || '',
-          s.registerNumber || '',
           s.phoneNumber || '',
           s.email || '',
           s.submissionDate || '',

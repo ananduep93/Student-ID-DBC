@@ -4,7 +4,7 @@ import { uploadProfilePhoto, saveStudentProfile } from './api.js';
 document.addEventListener('DOMContentLoaded', () => {
   // Stepper State
   let currentStep = 1;
-  const totalSteps = 3;
+  const totalSteps = 2;
 
   // DOM Elements
   const form = document.getElementById('student-form');
@@ -260,10 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
       // 3. Validate department
       const dept = document.getElementById('department');
       isValid = validateField(dept, dept.value !== "") && isValid;
-
-      // 4. Validate register number
-      const reg = document.getElementById('register-number');
-      isValid = validateField(reg, reg.value.trim().length > 0) && isValid;
     }
 
     if (step === 2) {
@@ -277,9 +273,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       isValid = validateField(email, emailRegex.test(email.value.trim())) && isValid;
 
-      // 3. LinkedIn (Required URL)
+      // 3. LinkedIn (Optional URL)
       const linkedin = document.getElementById('linkedin-url');
-      isValid = validateField(linkedin, isValidURL(linkedin.value.trim())) && isValid;
+      if (linkedin.value.trim().length > 0) {
+        isValid = validateField(linkedin, isValidURL(linkedin.value.trim())) && isValid;
+      } else {
+        clearFieldStatus(linkedin);
+      }
 
       // 4. Optional URLs (Validate only if filled)
       const insta = document.getElementById('instagram-url');
@@ -302,10 +302,8 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         clearFieldStatus(portfolio);
       }
-    }
 
-    if (step === 3) {
-      // 1. About Me (10 - 200 chars)
+      // 5. About Me (10 - 200 chars, required)
       const len = aboutMe.value.trim().length;
       isValid = validateField(aboutMe, len >= 10 && len <= 200) && isValid;
     }
@@ -391,7 +389,6 @@ document.addEventListener('DOMContentLoaded', () => {
         photoUrl: photoUrl,
         college: document.getElementById('college').value.trim(),
         department: document.getElementById('department').value,
-        registerNumber: document.getElementById('register-number').value.trim(),
         phoneNumber: document.getElementById('phone-number').value.trim(),
         email: document.getElementById('email').value.trim(),
         linkedinUrl: document.getElementById('linkedin-url').value.trim(),

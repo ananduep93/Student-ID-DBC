@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portfolio | Executive Lead</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #C9A96E;
+            --gold-light: #E8D5A3;
+            --gold-dark: #8B7355;
+            --black: #0A0A0A;
+            --black-light: #141414;
+            --black-card: #111111;
+            --white: #F5F5F5;
+            --gray: #888888;
+            --gray-dark: #333333;
+        }
+
+        body {
+            background: var(--black);
+            color: var(--white);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Animated background particles */
+        .bg-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite ease-in-out;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            50% { transform: translateY(-100vh) translateX(50px); }
+        }
+
+        /* Gold gradient line */
+        .gold-line {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            width: 100%;
+            opacity: 0.5;
+        }
+
+        /* Main container */
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            position: relative;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-btn {
+            width: 40px;
+            height: 40px;
+            border: 1px solid var(--gray-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+
+        .menu-btn:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 20px rgba(201, 169, 110, 0.2);
+        }
+
+        .menu-btn span {
+            display: block;
+            width: 18px;
+            height: 1.5px;
+            background: var(--white);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn span::before,
+        .menu-btn span::after {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 1.5px;
+            background: var(--white);
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn span::before { top: -6px; }
+        .menu-btn span::after { top: 6px; }
+
+        /* Hero Card */
+        .hero-card {
+            background: linear-gradient(145deg, var(--black-card), #0D0D0D);
+            border: 1px solid var(--gray-dark);
+            border-radius: 24px;
+            padding: 40px 30px;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 
+                0 20px 60px rgba(0,0,0,0.8),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+            animation: cardReveal 1s ease-out;
+        }
+
+        @keyframes cardReveal {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px) scale(0.95); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0) scale(1); 
+            }
+        }
+
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(201,169,110,0.03) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .card-accent {
+            position: absolute;
+            top: 0;
+            left: 30px;
+            right: 30px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            opacity: 0.6;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border: 1px solid var(--gold);
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--gold);
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-badge::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(201,169,110,0.2), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .name {
+            font-family: 'Playfair Display', serif;
+            font-size: 52px;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -2px;
+            margin-bottom: 8px;
+            background: linear-gradient(180deg, var(--white), #999);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .surname {
+            font-family: 'Playfair Display', serif;
+            font-size: 52px;
+            font-weight: 900;
+            line-height: 1;
+            letter-spacing: -2px;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 30px;
+        }
+
+        /* Profile section with PLAIN photo */
+        .profile-section {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 30px;
+        }
+
+        .photo-plain {
+            width: 130px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 4px;
+            flex-shrink: 0;
+            filter: grayscale(20%) contrast(1.1);
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .designation {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gold);
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .department {
+            font-size: 13px;
+            color: var(--gray);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .year {
+            font-size: 12px;
+            color: var(--gray-dark);
+            letter-spacing: 3px;
+            font-family: 'Inter', monospace;
+        }
+
+        /* Contact Links */
+        .contact-section {
+            margin-top: 30px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .contact-item:hover {
+            padding-left: 10px;
+        }
+
+        .contact-item:hover .contact-label {
+            color: var(--gold);
+        }
+
+        .contact-item:hover .contact-arrow {
+            transform: translateX(5px);
+            color: var(--gold);
+        }
+
+        .contact-label {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--white);
+            transition: color 0.3s ease;
+        }
+
+        .contact-arrow {
+            font-size: 18px;
+            color: var(--gray);
+            transition: all 0.3s ease;
+        }
+
+        /* Stats Section */
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(145deg, var(--black-card), var(--black-light));
+            border: 1px solid var(--gray-dark);
+            border-radius: 16px;
+            padding: 24px 16px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .stat-card:hover {
+            border-color: var(--gold);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(201,169,110,0.1);
+        }
+
+        .stat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .stat-card:hover::after {
+            opacity: 1;
+        }
+
+        .stat-number {
+            font-family: 'Playfair Display', serif;
+            font-size: 32px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: var(--gray);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* Skills Section */
+        .skills-section {
+            margin-top: 40px;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, var(--gray-dark), transparent);
+        }
+
+        .skill-tag {
+            display: inline-block;
+            padding: 10px 20px;
+            background: var(--black-light);
+            border: 1px solid var(--gray-dark);
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            margin: 6px;
+            transition: all 0.3s ease;
+            cursor: default;
+        }
+
+        .skill-tag:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            box-shadow: 0 0 20px rgba(201,169,110,0.15);
+            transform: scale(1.05);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 60px;
+            padding: 30px 0;
+            text-align: center;
+            border-top: 1px solid var(--gray-dark);
+        }
+
+        .footer-text {
+            font-size: 11px;
+            color: var(--gray);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .footer-logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-top: 8px;
+        }
+
+        /* Scroll indicator */
+        .scroll-indicator {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border: 1px solid var(--gray-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--black);
+            z-index: 100;
+        }
+
+        .scroll-indicator:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 30px rgba(201,169,110,0.2);
+        }
+
+        /* Mobile optimization */
+        @media (max-width: 480px) {
+            .name, .surname { font-size: 42px; }
+            .profile-section { flex-direction: column; text-align: center; }
+            .stats-section { grid-template-columns: 1fr; }
+        }
+
+        /* Loading animation */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .delay-1 { animation-delay: 0.1s; }
+        .delay-2 { animation-delay: 0.2s; }
+        .delay-3 { animation-delay: 0.3s; }
+        .delay-4 { animation-delay: 0.4s; }
+        .delay-5 { animation-delay: 0.5s; }
+    </style>
+</head>
+<body>
+    <!-- Background Particles -->
+    <div class="bg-particles" id="particles"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header fade-in">
+            <div class="logo">DON BOSCO COLLEGE</div>
+            <div class="menu-btn">
+                <span></span>
+            </div>
+        </header>
+
+        <!-- Hero Card -->
+        <div class="hero-card fade-in delay-1">
+            <div class="card-accent"></div>
+
+            
+
+            <h1 class="name">MUHAMMED SINAN</h1>
+            <h1 class="surname">M.K</h1>
+
+            <div class="profile-section">
+                <!-- PLAIN RECTANGULAR PHOTO -->
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSxnWFMujfVbkXzs6C1W02CUfe4hnYuOKjkYSC_ExW80uO0EseUh5gi_gLQi__3tuCxEnsKa1ySz9Zn1Z0V9t8euFm6Uc4-dLPkxMwMryXXNA&s=10" 
+                     alt="Profile" 
+                     class="photo-plain">
+                <div class="profile-info">
+                    <div class="designation">BBA</div>
+                    <div class="department">AVIATION AND LOGISTICS</div>
+                    <div class="year">2024 — 2028</div>
+                </div>
+            </div>
+
+            <div class="gold-line"></div>
+
+            <!-- Contact Links -->
+            <div class="contact-section">
+                <a href="#" class="contact-item">
+                    <span class="contact-label">LinkedIn</span>
+                    <span class="contact-arrow">↗</span>
+                </a>
+                <a href="#" class="contact-item">
+                    <span class="contact-label">Instagram</span>
+                    <span class="contact-arrow">↗</span>
+                </a>
+                <a href="#" class="contact-item">
+                    <span class="contact-label">Email</span>
+                    <span class="contact-arrow">↗</span>
+                </a>
+                <a href="#" class="contact-item">
+                    <span class="contact-label">Phone</span>
+                    <span class="contact-arrow">↗</span>
+                </a>
+            </div>
+        </div>
+
+       
+            </div>
+            
+            </div>
+        </div>
+
+       
+            </div>
+        </div>
+
+        
+    </div>
+
+    <!-- Scroll to top -->
+    <div class="scroll-indicator" onclick="window.scrollTo({top:0,behavior:'smooth'})">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gold);">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </div>
+
+    <script>
+        // Generate background particles
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 30; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Parallax effect on mouse move
+        document.addEventListener('mousemove', (e) => {
+            const x = (e.clientX / window.innerWidth - 0.5) * 20;
+            const y = (e.clientY / window.innerHeight - 0.5) * 20;
+
+            document.querySelectorAll('.hero-card').forEach(card => {
+                card.style.transform = `perspective(1000px) rotateY(${x * 0.1}deg) rotateX(${-y * 0.1}deg)`;
+            });
+        });
+
+        // Intersection Observer for scroll animations
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Smooth scroll for contact items
+        document.querySelectorAll('.contact-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                item.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    item.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // Stat counter animation
+        function animateCounter(element, target) {
+            let current = 0;
+            const increment = target / 50;
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    element.textContent = target + '+';
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.floor(current);
+                }
+            }, 30);
+        }
+
+        // Trigger counter animation when stats are visible
+        const statsObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const num = entry.target.querySelector('.stat-number');
+                    const text = num.textContent;
+                    const value = parseInt(text);
+                    if (!isNaN(value)) {
+                        num.textContent = '0';
+                        setTimeout(() => animateCounter(num, value), 200);
+                    }
+                    statsObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.5 });
+
+        document.querySelectorAll('.stat-card').forEach(card => statsObserver.observe(card));
+    </script>
+</body>
+</html>

@@ -1,22 +1,13 @@
 /**
  * FIREBASE INITIALIZATION & CONFIGURATION FILE
  * 
- * Replace the placeholder values in standardConfig with your actual Firebase project
- * credentials when you are ready to connect to Firestore and Storage.
+ * Credentials are imported from config.js (which is ignored by Git).
  */
+
+import { firebaseConfig } from './config.js';
 
 // Placeholder values that denote Firebase is not configured yet
 const PLACEHOLDER = "YOUR_FIREBASE_";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAik95yxNNzDVF8Xc5zK7Vf_-mZ-EpPfd0",
-  authDomain: "student-id-a8fa4.firebaseapp.com",
-  projectId: "student-id-a8fa4",
-  storageBucket: "student-id-a8fa4.firebasestorage.app",
-  messagingSenderId: "984650177598",
-  appId: "1:984650177598:web:c551e6f8fe0fb43c24856f",
-  measurementId: "G-LHDHETKNF2"
-};
 
 // Check if actual config has been provided
 export const isFirebaseConfigured = () => {

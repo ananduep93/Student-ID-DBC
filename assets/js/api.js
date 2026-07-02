@@ -1,7 +1,5 @@
 import { initFirebase, isFirebaseConfigured } from './firebase-config.js';
-
-// Configuration keys - replace these with your actual keys
-const IMAGEBB_API_KEY = "1c63770e2fc72785f2d6f1560efe9bf5";
+import { IMAGEBB_API_KEY } from './config.js';
 
 const isImageBBConfigured = () => {
   return IMAGEBB_API_KEY && !IMAGEBB_API_KEY.startsWith("YOUR_");

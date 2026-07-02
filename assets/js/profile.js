@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const profileName = document.getElementById('profile-name');
   const profileDept = document.getElementById('profile-dept');
   const profileCollege = document.getElementById('profile-college');
-  const profileReg = document.getElementById('profile-reg');
   const profileBio = document.getElementById('profile-bio');
   const profileSkills = document.getElementById('profile-skills');
   const skillsSection = document.getElementById('skills-section');
@@ -71,7 +70,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     profileName.textContent = student.fullName;
     profileDept.textContent = student.department;
     profileCollege.textContent = student.college;
-    profileReg.textContent = student.registerNumber;
     profileBio.textContent = student.aboutMe;
 
     // Department color code update
@@ -246,7 +244,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           `TITLE:${student.department}`,
           `TEL;TYPE=CELL:${student.phoneNumber}`,
           `EMAIL;TYPE=PREF,INTERNET:${student.email}`,
-          `NOTE:Register No: ${student.registerNumber}. ${student.aboutMe}`,
+          `NOTE:${student.aboutMe}`,
         ];
 
         if (student.linkedinUrl) vcardLines.push(`URL;TYPE=LinkedIn:${student.linkedinUrl}`);
