@@ -1,13 +1,25 @@
-/**
- * FIREBASE INITIALIZATION & CONFIGURATION FILE
- * 
- * Credentials are imported from config.js (which is ignored by Git).
- */
-
-import { firebaseConfig } from './config.js';
-
 // Placeholder values that denote Firebase is not configured yet
 const PLACEHOLDER = "YOUR_FIREBASE_";
+
+export let firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+  projectId: "YOUR_FIREBASE_PROJECT_ID",
+  storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "YOUR_FIREBASE_APP_ID",
+  measurementId: "YOUR_FIREBASE_MEASUREMENT_ID"
+};
+
+// Try loading local config.js dynamically so it doesn't crash if ignored in Git
+try {
+  const configModule = await import('./config.js');
+  if (configModule && configModule.firebaseConfig) {
+    firebaseConfig = configModule.firebaseConfig;
+  }
+} catch (e) {
+  console.warn("config.js not found or failed to load. Running in Mock/Template mode.");
+}
 
 // Check if actual config has been provided
 export const isFirebaseConfigured = () => {

@@ -1,5 +1,16 @@
 import { initFirebase, isFirebaseConfigured } from './firebase-config.js';
-import { IMAGEBB_API_KEY } from './config.js';
+
+export let IMAGEBB_API_KEY = "YOUR_IMAGEBB_API_KEY";
+
+// Try loading local config.js dynamically so it doesn't crash if ignored in Git
+try {
+  const configModule = await import('./config.js');
+  if (configModule && configModule.IMAGEBB_API_KEY) {
+    IMAGEBB_API_KEY = configModule.IMAGEBB_API_KEY;
+  }
+} catch (e) {
+  console.warn("config.js not found or failed to load. Running in Mock/Template mode.");
+}
 
 const isImageBBConfigured = () => {
   return IMAGEBB_API_KEY && !IMAGEBB_API_KEY.startsWith("YOUR_");
