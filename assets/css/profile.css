@@ -11,7 +11,7 @@
 }
 
 body.profile-page-theme {
-  background: var(--bg-light) !important;
+  background: #f0f4f8 !important; /* Soft backdrop for claymorphic card */
   color: var(--text-dark) !important;
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
@@ -20,9 +20,16 @@ body.profile-page-theme {
 
 body.profile-page-theme .container {
   max-width: 480px;
-  margin: 0 auto;
-  padding: 24px 20px;
+  margin: 40px auto;
+  padding: 36px 28px;
   position: relative;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 36px;
+  box-shadow: 16px 16px 36px rgba(15, 76, 129, 0.05), 
+              -12px -12px 28px rgba(255, 255, 255, 0.95), 
+              inset -6px -6px 12px rgba(15, 76, 129, 0.02), 
+              inset 6px 6px 12px rgba(255, 255, 255, 0.85);
 }
 
 /* Header & Navigation */
@@ -92,10 +99,13 @@ body.profile-page-theme header.header {
   flex-shrink: 0;
   width: 220px; /* Centered, prominent photo size */
   height: 270px;
-  border-radius: 1px; /* Plain rectangle with sharp/minimal border radius */
+  border-radius: 28px;
   overflow: hidden;
   background-color: #ffffff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  box-shadow: 12px 12px 28px rgba(15, 76, 129, 0.08), 
+              -10px -10px 24px rgba(255, 255, 255, 0.9), 
+              inset -6px -6px 12px rgba(15, 76, 129, 0.03), 
+              inset 6px 6px 12px rgba(255, 255, 255, 0.85);
   transform-style: preserve-3d;
   will-change: transform;
   transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
@@ -306,16 +316,19 @@ body.profile-page-theme header.header {
   font-size: 14px;
   line-height: 1.6;
   color: var(--text-gray);
-  background: #f9fafb;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 76, 129, 0.04);
+  border-radius: 18px;
   padding: 18px;
   margin-top: 10px;
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.02), 
+              inset -3px -3px 6px rgba(255, 255, 255, 0.85);
   transition: box-shadow 0.3s ease;
 }
 
 .bio-text:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.02), 
+              inset -2px -2px 4px rgba(255, 255, 255, 0.9);
 }
 
 .skills-list {
@@ -326,13 +339,16 @@ body.profile-page-theme header.header {
 }
 
 .skill-tag {
-  background: #f3f4f6;
-  border: 1px solid var(--border-color);
+  background: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.8);
   color: var(--text-dark);
   border-radius: 20px;
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
+  box-shadow: 4px 4px 10px rgba(15, 76, 129, 0.04), 
+              inset -2px -2px 4px rgba(0, 0, 0, 0.02), 
+              inset 2px 2px 4px rgba(255, 255, 255, 0.9);
   transition: all 0.2s ease, transform 0.2s ease;
 }
 
@@ -340,7 +356,10 @@ body.profile-page-theme header.header {
   background: var(--primary-blue);
   color: white;
   border-color: var(--primary-blue);
-  transform: translateY(-1px);
+  box-shadow: 6px 6px 12px rgba(15, 76, 129, 0.15),
+              inset -3px -3px 6px rgba(0, 0, 0, 0.1),
+              inset 3px 3px 6px rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
 }
 
 /* Lightbox Popup Modal */
@@ -503,15 +522,17 @@ footer {
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s ease, margin 0.4s ease;
-  background-color: #f9fafb;
-  border-radius: 8px;
+  background-color: #f8fafc;
+  border-radius: 18px;
 }
 
 .collapsible-content.open {
-  margin-top: 5px;
-  margin-bottom: 15px;
-  border: 1px solid var(--border-color);
-  padding: 8px 16px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(15, 76, 129, 0.04);
+  padding: 12px 20px;
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.02), 
+              inset -3px -3px 6px rgba(255, 255, 255, 0.85);
 }
 
 .personal-detail-row {
