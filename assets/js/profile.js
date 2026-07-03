@@ -19,8 +19,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const profileCollege = document.getElementById('profile-college');
   const profileDept = document.getElementById('profile-dept');
   const profileYear = document.getElementById('profile-year');
-  const profileBio = document.getElementById('profile-bio');
-  const bioSection = document.getElementById('bio-section');
+  const detailsCollapsibleWrapper = document.getElementById('details-collapsible-wrapper');
+  const detailsTrigger = document.getElementById('details-trigger');
+  const detailsContent = document.getElementById('details-content');
+  const detailRowBio = document.getElementById('detail-row-bio');
+  const detailValBio = document.getElementById('detail-val-bio');
+  const detailRowBlood = document.getElementById('detail-row-blood');
+  const detailValBlood = document.getElementById('detail-val-blood');
+  const detailRowAddress = document.getElementById('detail-row-address');
+  const detailValAddress = document.getElementById('detail-val-address');
   const profileSkills = document.getElementById('profile-skills');
   const skillsSection = document.getElementById('skills-section');
 
@@ -118,12 +125,42 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 3D Tilt Parallax Animation
     setup3DTiltEffect();
 
-    // Bio Render
-    if (student.aboutMe && student.aboutMe.trim().length > 0) {
-      profileBio.textContent = student.aboutMe;
-      bioSection.style.display = 'block';
+    // Personal Details Collapsible Render
+    let hasPersonalDetails = false;
+
+    // 1. Bio
+    if (student.aboutMe && student.aboutMe.trim() !== "") {
+      detailValBio.textContent = student.aboutMe;
+      detailRowBio.style.display = 'flex';
+      hasPersonalDetails = true;
     } else {
-      bioSection.style.display = 'none';
+      detailRowBio.style.display = 'none';
+    }
+
+    // 2. Blood Group
+    if (student.bloodGroup && student.bloodGroup.trim() !== "") {
+      detailValBlood.textContent = student.bloodGroup;
+      detailRowBlood.style.display = 'flex';
+      hasPersonalDetails = true;
+    } else {
+      detailRowBlood.style.display = 'none';
+    }
+
+    // 3. Address
+    if (student.address && student.address.trim() !== "") {
+      detailValAddress.textContent = student.address;
+      detailRowAddress.style.display = 'flex';
+      hasPersonalDetails = true;
+    } else {
+      detailRowAddress.style.display = 'none';
+    }
+
+    // Toggle Collapsible Section Visibility
+    if (hasPersonalDetails) {
+      detailsCollapsibleWrapper.style.display = 'block';
+      setupCollapsibleAccordion();
+    } else {
+      detailsCollapsibleWrapper.style.display = 'none';
     }
 
     // Skills Render (using .skill-tag class)
@@ -215,9 +252,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     lightbox.style.display = 'none';
   });
 
-  lightbox.addEventListener('click', (e) => {
-    if (e.target === lightbox) {
-      lightbox.style.display = 'none';
-    }
-  });
+  // Accordion toggle logic with smooth max-height animation
+  function setupCollapsibleAccordion() {
+    const trigger = document.getElementById('details-trigger');
+    const content = document.getElementById('details-content');
+    const arrow = trigger.querySelector('.contact-arrow-toggle');
+
+    // Remove existing listener to prevent duplicates
+    const newTrigger = trigger.cloneNode(true);
+    trigger.parentNode.replaceChild(newTrigger, trigger);
+    const newArrow = newTrigger.querySelector('.contact-arrow-toggle');
+
+    newTrigger.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isOpen = content.classList.contains('open');
+      if (isOpen) {
+        content.classList.remove('open');
+        content.style.maxHeight = '0px';
+        newArrow.style.transform = 'rotate(0deg)';
+      } else {
+        content.classList.add('open');
+        content.style.maxHeight = content.scrollHeight + 'px';
+        newArrow.style.transform = 'rotate(180deg)';
+      }
+    });
+  }
 });

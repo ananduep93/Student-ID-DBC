@@ -434,3 +434,73 @@ footer {
   from { transform: scale(0.7); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+
+/* Collapsible personal details accordion container */
+.collapsible-wrapper {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.collapsible-trigger {
+  background: none !important;
+  border: none !important;
+  border-bottom: none !important;
+  outline: none !important;
+  width: 100% !important;
+  text-align: left !important;
+  cursor: pointer !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+}
+
+.contact-arrow-toggle {
+  font-size: 14px;
+  color: var(--text-light-gray);
+  transition: transform 0.3s ease;
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.collapsible-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.16, 1, 0.3, 1), padding 0.4s ease, margin 0.4s ease;
+  background-color: #f9fafb;
+  border-radius: 8px;
+}
+
+.collapsible-content.open {
+  margin-top: 5px;
+  margin-bottom: 15px;
+  border: 1px solid var(--border-color);
+  padding: 8px 16px;
+}
+
+.personal-detail-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.personal-detail-row:last-child {
+  border-bottom: none;
+}
+
+.personal-detail-row .detail-label {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--primary-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.personal-detail-row .detail-val {
+  font-size: 13.5px;
+  color: var(--text-gray);
+  line-height: 1.5;
+  white-space: pre-line;
+}

@@ -59,6 +59,28 @@
 
         <!-- Contact Links Stack -->
         <div class="contact-section">
+          <!-- Collapsible Personal Details Row -->
+          <div class="collapsible-wrapper" id="details-collapsible-wrapper" style="display: none;">
+            <button type="button" class="contact-item collapsible-trigger" id="details-trigger">
+              <span class="contact-label">Personal Details</span>
+              <span class="contact-arrow-toggle">▼</span>
+            </button>
+            <div class="collapsible-content" id="details-content">
+              <div class="personal-detail-row" id="detail-row-bio">
+                <span class="detail-label">Bio</span>
+                <span class="detail-val" id="detail-val-bio"></span>
+              </div>
+              <div class="personal-detail-row" id="detail-row-blood">
+                <span class="detail-label">Blood Group</span>
+                <span class="detail-val" id="detail-val-blood"></span>
+              </div>
+              <div class="personal-detail-row" id="detail-row-address">
+                <span class="detail-label">Address</span>
+                <span class="detail-val" id="detail-val-address"></span>
+              </div>
+            </div>
+          </div>
+
           <a id="social-linkedin" href="" target="_blank" class="contact-item">
             <span class="contact-label">LinkedIn</span>
             <span class="contact-arrow">↗</span>
@@ -89,13 +111,7 @@
           </a>
         </div>
 
-        <!-- About Me / Bio Section -->
-        <div class="skills-section" id="bio-section">
-          <h2 class="section-title">About Me</h2>
-          <p id="profile-bio" class="bio-text">
-            Bio details loaded dynamically.
-          </p>
-        </div>
+
 
         <!-- Skills Section -->
         <div class="skills-section" id="skills-section">

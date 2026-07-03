@@ -45,6 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const editPhone = document.getElementById('edit-phone');
   const editEmail = document.getElementById('edit-email');
   const editBio = document.getElementById('edit-bio');
+  const editBlood = document.getElementById('edit-blood');
+  const editAddress = document.getElementById('edit-address');
 
   // 1. Initial Authentication Check
   if (sessionStorage.getItem(AUTH_KEY) === 'true') {
@@ -307,7 +309,9 @@ document.addEventListener('DOMContentLoaded', () => {
     editDept.value = student.department;
     editPhone.value = student.phoneNumber;
     editEmail.value = student.email;
-    editBio.value = student.aboutMe;
+    editBio.value = student.aboutMe || "";
+    editBlood.value = student.bloodGroup || "";
+    editAddress.value = student.address || "";
     
     editModal.classList.add('active');
   }
@@ -336,7 +340,9 @@ document.addEventListener('DOMContentLoaded', () => {
       department: editDept.value,
       phoneNumber: editPhone.value.trim(),
       email: editEmail.value.trim(),
-      aboutMe: editBio.value.trim()
+      aboutMe: editBio.value.trim(),
+      bloodGroup: editBlood.value,
+      address: editAddress.value.trim()
     };
 
     loadingOverlay.classList.add('active');

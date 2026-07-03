@@ -227,7 +227,9 @@ document.addEventListener('DOMContentLoaded', () => {
         githubUrl: document.getElementById('github-url').value.trim(),
         portfolioUrl: document.getElementById('portfolio-url').value.trim(),
         skills: skillsList,
-        aboutMe: aboutMe.value.trim()
+        aboutMe: aboutMe.value.trim(),
+        bloodGroup: document.getElementById('blood-group').value,
+        address: document.getElementById('address').value.trim()
       };
 
       // 2. Save details to Firestore (or localMock)
