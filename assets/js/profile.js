@@ -87,13 +87,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       profileCollege.style.display = 'none';
     }
 
-    // Set Department directly
-    if (student.department === "AI & DS") {
-      profileDept.textContent = "AI & DS";
-    } else if (student.department === "AVIATION") {
-      profileDept.textContent = "AVIATION AND LOGISTICS";
+    // Set Department directly (handling both old database entries and new options)
+    const dept = student.department ? student.department.toUpperCase() : "";
+    if (dept === "AI & DS" || dept === "ARTIFICIAL INTELLIGENCE & DATA SCIENCE") {
+      profileDept.textContent = "ARTIFICIAL INTELLIGENCE & DATA SCIENCE";
+    } else if (dept === "AVIATION" || dept === "AVIATION & LOGISTICS") {
+      profileDept.textContent = "AVIATION & LOGISTICS";
     } else {
-      profileDept.textContent = student.department ? student.department.toUpperCase() : "";
+      profileDept.textContent = dept;
     }
 
     // Set dynamic academic year range based on submission date (default 4-year span, e.g. 2024 — 2028)

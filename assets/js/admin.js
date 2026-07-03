@@ -173,7 +173,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
 
-      const deptClass = student.department === 'AI & DS' ? 'aids' : 'aviation';
+      let deptClass = 'aviation';
+      if (student.department === 'ARTIFICIAL INTELLIGENCE & DATA SCIENCE') {
+        deptClass = 'aids';
+      } else if (student.department === 'HOSPITAL ADMINISTRATION & HEALTH CARE MANAGEMENT') {
+        deptClass = 'hospital';
+      }
       const initialLetter = student.fullName ? student.fullName.charAt(0).toUpperCase() : 'S';
       
       // Check if student has an uploaded photoUrl
