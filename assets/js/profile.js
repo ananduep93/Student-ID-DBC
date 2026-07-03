@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Data Elements
   const profileFullName = document.getElementById('profile-full-name');
-  const profileRole = document.getElementById('profile-role');
+
   const profileImg = document.getElementById('profile-img');
   const profileAvatar = document.getElementById('profile-avatar');
   const profileCollege = document.getElementById('profile-college');
@@ -70,14 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderProfileCard(student) {
     profileFullName.textContent = student.fullName || "Student Profile";
     
-    // Set default Course tag above name (B.Sc / BBA / Student)
-    let courseText = "STUDENT";
-    if (student.department === "AI & DS") {
-      courseText = "B.Sc";
-    } else if (student.department === "AVIATION") {
-      courseText = "B.B.A";
-    }
-    profileRole.textContent = courseText;
+
 
     // Set College Name (Only display if entered)
     if (student.college && student.college.trim() !== "") {
