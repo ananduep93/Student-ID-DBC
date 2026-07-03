@@ -2,15 +2,8 @@ import toast from './toast.js';
 import { saveStudentProfile } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Stepper State
-  let currentStep = 1;
-  const totalSteps = 2;
-
   // DOM Elements
   const form = document.getElementById('student-form');
-  const prevBtn = document.getElementById('prev-btn');
-  const nextBtn = document.getElementById('next-btn');
-  const nextIcon = document.getElementById('next-icon');
   const loadingOverlay = document.getElementById('loading-overlay');
   const loadingText = document.getElementById('loading-text');
 
@@ -27,10 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Pre-fill / Setup inputs
   setupSkillsTags();
   setupBioCounter();
-
-  // Navigation Event Listeners
-  prevBtn.addEventListener('click', navigatePrevious);
-  nextBtn.addEventListener('click', navigateNext);
 
   // Character counter for Bio
   function setupBioCounter() {
@@ -90,114 +79,61 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Multi-step Navigation Logic
-  function navigatePrevious() {
-    if (currentStep > 1) {
-      document.getElementById(`step-panel-${currentStep}`).classList.remove('active');
-      document.getElementById(`step-node-${currentStep}`).classList.remove('active');
-      currentStep--;
-      document.getElementById(`step-panel-${currentStep}`).classList.add('active');
-      updateStepperUI();
-    }
-  }
-
-  function navigateNext() {
-    if (validateStep(currentStep)) {
-      if (currentStep < totalSteps) {
-        document.getElementById(`step-panel-${currentStep}`).classList.remove('active');
-        document.getElementById(`step-node-${currentStep}`).classList.add('completed');
-        currentStep++;
-        document.getElementById(`step-panel-${currentStep}`).classList.add('active');
-        document.getElementById(`step-node-${currentStep}`).classList.add('active');
-        updateStepperUI();
-      } else {
-        submitForm();
-      }
-    } else {
-      toast.show("Please fix validation errors before moving forward.", "error");
-    }
-  }
-
-  function updateStepperUI() {
-    // Update navigation button states
-    prevBtn.disabled = currentStep === 1;
-
-    if (currentStep === totalSteps) {
-      nextBtn.innerHTML = `
-        Submit Profile
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-      `;
-    } else {
-      nextBtn.innerHTML = `
-        Next
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-      `;
-    }
-
-    // Update progress bar width
-    const progressWidth = ((currentStep - 1) / (totalSteps - 1)) * 100;
-    document.getElementById('stepper-progress').style.width = `${progressWidth}%`;
-  }
-
-  // Validation routines per step
-  function validateStep(step) {
+  // Form Validation Routine
+  function validateForm() {
     let isValid = true;
 
-    if (step === 1) {
-      // 1. Validate name
-      const name = document.getElementById('full-name');
-      isValid = validateField(name, name.value.trim().length > 0) && isValid;
+    // 1. Validate name
+    const name = document.getElementById('full-name');
+    isValid = validateField(name, name.value.trim().length > 0) && isValid;
 
-      // 2. Validate department
-      const dept = document.getElementById('department');
-      isValid = validateField(dept, dept.value !== "") && isValid;
+    // 2. Validate department
+    const dept = document.getElementById('department');
+    isValid = validateField(dept, dept.value !== "") && isValid;
+
+    // 3. Phone number (10 digits)
+    const phone = document.getElementById('phone-number');
+    const phoneRegex = /^[6-9]\d{9}$/; // Standard Indian mobile phone validation
+    isValid = validateField(phone, phoneRegex.test(phone.value.trim())) && isValid;
+
+    // 4. Email validation
+    const email = document.getElementById('email');
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    isValid = validateField(email, emailRegex.test(email.value.trim())) && isValid;
+
+    // 5. LinkedIn (Optional URL)
+    const linkedin = document.getElementById('linkedin-url');
+    if (linkedin.value.trim().length > 0) {
+      isValid = validateField(linkedin, isValidURL(linkedin.value.trim())) && isValid;
+    } else {
+      clearFieldStatus(linkedin);
     }
 
-    if (step === 2) {
-      // 1. Phone number (10 digits)
-      const phone = document.getElementById('phone-number');
-      const phoneRegex = /^[6-9]\d{9}$/; // Standard Indian mobile phone validation
-      isValid = validateField(phone, phoneRegex.test(phone.value.trim())) && isValid;
-
-      // 2. Email validation
-      const email = document.getElementById('email');
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      isValid = validateField(email, emailRegex.test(email.value.trim())) && isValid;
-
-      // 3. LinkedIn (Optional URL)
-      const linkedin = document.getElementById('linkedin-url');
-      if (linkedin.value.trim().length > 0) {
-        isValid = validateField(linkedin, isValidURL(linkedin.value.trim())) && isValid;
-      } else {
-        clearFieldStatus(linkedin);
-      }
-
-      // 4. Optional URLs (Validate only if filled)
-      const insta = document.getElementById('instagram-url');
-      if (insta.value.trim().length > 0) {
-        isValid = validateField(insta, isValidURL(insta.value.trim())) && isValid;
-      } else {
-        clearFieldStatus(insta);
-      }
-
-      const github = document.getElementById('github-url');
-      if (github.value.trim().length > 0) {
-        isValid = validateField(github, isValidURL(github.value.trim())) && isValid;
-      } else {
-        clearFieldStatus(github);
-      }
-
-      const portfolio = document.getElementById('portfolio-url');
-      if (portfolio.value.trim().length > 0) {
-        isValid = validateField(portfolio, isValidURL(portfolio.value.trim())) && isValid;
-      } else {
-        clearFieldStatus(portfolio);
-      }
-
-      // 5. About Me (10 - 200 chars, required)
-      const len = aboutMe.value.trim().length;
-      isValid = validateField(aboutMe, len >= 10 && len <= 200) && isValid;
+    // 6. Optional URLs (Validate only if filled)
+    const insta = document.getElementById('instagram-url');
+    if (insta.value.trim().length > 0) {
+      isValid = validateField(insta, isValidURL(insta.value.trim())) && isValid;
+    } else {
+      clearFieldStatus(insta);
     }
+
+    const github = document.getElementById('github-url');
+    if (github.value.trim().length > 0) {
+      isValid = validateField(github, isValidURL(github.value.trim())) && isValid;
+    } else {
+      clearFieldStatus(github);
+    }
+
+    const portfolio = document.getElementById('portfolio-url');
+    if (portfolio.value.trim().length > 0) {
+      isValid = validateField(portfolio, isValidURL(portfolio.value.trim())) && isValid;
+    } else {
+      clearFieldStatus(portfolio);
+    }
+
+    // 7. About Me (10 - 200 chars, required)
+    const len = aboutMe.value.trim().length;
+    isValid = validateField(aboutMe, len >= 10 && len <= 200) && isValid;
 
     return isValid;
   }
@@ -258,10 +194,11 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Submit profile details to api layer
-  async function submitForm() {
-    // Final check — re-validate the last step (step 2) before submitting
-    if (!validateStep(2)) {
-      toast.show("Please correct the form fields.", "error");
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      toast.show("Please fix validation errors before submitting.", "error");
       return;
     }
 
@@ -302,5 +239,5 @@ document.addEventListener('DOMContentLoaded', () => {
       loadingOverlay.classList.remove('active');
       toast.show("Submission failed: " + err.message, "error");
     }
-  }
+  });
 });
