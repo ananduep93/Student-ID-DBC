@@ -79,8 +79,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     profileRole.textContent = courseText;
 
-    // Set College Name
-    profileCollege.textContent = student.college ? student.college.toUpperCase() : "DON BOSCO COLLEGE";
+    // Set College Name (Only display if entered)
+    if (student.college && student.college.trim() !== "") {
+      profileCollege.textContent = student.college.toUpperCase();
+      profileCollege.style.display = 'block';
+    } else {
+      profileCollege.style.display = 'none';
+    }
 
     // Set Department directly
     if (student.department === "AI & DS") {
@@ -148,7 +153,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     contactEmail.href = `mailto:${student.email}`;
 
     // WhatsApp dynamic link construction (links to wa.me)
-    if (student.phoneNumber) {
+    if (student.phoneNumber && student.phoneNumber.trim() !== "") {
       const cleanPhone = student.phoneNumber.replace(/\D/g, '');
       const prefixedPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
       socialWhatsapp.href = `https://wa.me/${prefixedPhone}`;
@@ -157,29 +162,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       socialWhatsapp.style.display = 'none';
     }
 
-    // Social Links visibility
-    if (student.linkedinUrl) {
+    // Social Links visibility (only show entered details)
+    if (student.linkedinUrl && student.linkedinUrl.trim() !== "") {
       socialLinkedin.href = student.linkedinUrl;
       socialLinkedin.style.display = 'flex';
     } else {
       socialLinkedin.style.display = 'none';
     }
 
-    if (student.instagramUrl) {
+    if (student.instagramUrl && student.instagramUrl.trim() !== "") {
       socialInstagram.href = student.instagramUrl;
       socialInstagram.style.display = 'flex';
     } else {
       socialInstagram.style.display = 'none';
     }
 
-    if (student.githubUrl) {
+    if (student.githubUrl && student.githubUrl.trim() !== "") {
       socialGithub.href = student.githubUrl;
       socialGithub.style.display = 'flex';
     } else {
       socialGithub.style.display = 'none';
     }
 
-    if (student.portfolioUrl) {
+    if (student.portfolioUrl && student.portfolioUrl.trim() !== "") {
       socialPortfolio.href = student.portfolioUrl;
       socialPortfolio.style.display = 'flex';
     } else {

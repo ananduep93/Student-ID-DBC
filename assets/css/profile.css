@@ -55,7 +55,7 @@ body.profile-page-theme header.header {
   opacity: 0;
   animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: 0.1s;
-  text-align: left;
+  text-align: center;
 }
 
 /* Huge Bold Student Name (Wraps into multiple lines) */
@@ -72,7 +72,7 @@ body.profile-page-theme header.header {
   opacity: 0;
   animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: 0.2s;
-  text-align: left;
+  text-align: center;
 }
 
 /* Centered Profile Details Section */
