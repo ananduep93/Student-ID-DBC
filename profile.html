@@ -13,13 +13,7 @@
   <div class="container">
     <!-- Header -->
     <header class="header">
-      <a href="./index.html" class="back-btn" aria-label="Go back">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-      </a>
-      <div class="header-logo">
-        <span class="logo-txt">iD</span>
-        <span class="logo-sub">DBC</span>
-      </div>
+      <img src="./assets/images/logo.png" alt="Don Bosco College Mampetta" class="header-college-logo">
     </header>
 
     <!-- Main Dynamic Container -->
@@ -50,13 +44,12 @@
 
         <!-- Profile Section: Image left, details right -->
         <div class="profile-section">
-          <div class="profile-photo-container">
+          <div class="profile-photo-container" id="open-lightbox-trigger">
             <img id="profile-img" class="photo-plain" src="" alt="Student Profile Photo" style="display: none;">
             <div id="profile-avatar" class="avatar-plain" style="display: none;">A</div>
           </div>
           
           <div class="profile-info">
-            <div class="designation" id="profile-designation">MEDIA LEAD</div>
             <div class="department" id="profile-dept">COMPUTER SCIENCE</div>
             <div class="year" id="profile-year">2024-2028</div>
           </div>
@@ -112,33 +105,15 @@
           </div>
         </div>
 
-        <!-- Share & QR Actions Section -->
-        <div class="skills-section" id="qr-section">
-          <h2 class="section-title">Share & Connect</h2>
-          <div class="qr-card">
-            <div id="qrcode-wrapper" class="qrcode-wrapper">
-              <div id="qrcode"></div>
-            </div>
-            
-            <div class="qr-buttons">
-              <button id="download-vcard-btn" class="gold-btn">
-                Save Contact (vCard)
-              </button>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;">
-                <button id="download-qr-btn" class="gold-btn-secondary">
-                  QR Code
-                </button>
-                <button id="share-profile-btn" class="gold-btn-secondary">
-                  Share
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
       </article>
 
     </main>
+  </div>
+
+  <!-- Lightbox Modal for Photo Popup -->
+  <div id="photo-lightbox" class="lightbox-modal">
+    <span class="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="lightbox-img">
   </div>
 
   <footer>
@@ -152,8 +127,6 @@
     </svg>
   </div>
 
-  <!-- QRCode.js CDN Library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nOMQLkYB/iOCRYKQyCSLZHibCxhyjILkvt5T5ECtqWwjYzn+ToNJfm4HXRGo6DQyT3YOHGz613cQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <!-- Main Script -->
   <script type="module" src="./assets/js/profile.js"></script>
 </body>

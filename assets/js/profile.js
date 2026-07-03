@@ -16,7 +16,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const profileRole = document.getElementById('profile-role');
   const profileImg = document.getElementById('profile-img');
   const profileAvatar = document.getElementById('profile-avatar');
-  const profileDesignation = document.getElementById('profile-designation');
   const profileDept = document.getElementById('profile-dept');
   const profileYear = document.getElementById('profile-year');
   const profileBio = document.getElementById('profile-bio');
@@ -34,10 +33,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const socialGithub = document.getElementById('social-github');
   const socialPortfolio = document.getElementById('social-portfolio');
 
-  // Interactive buttons
-  const downloadQrBtn = document.getElementById('download-qr-btn');
-  const downloadVcardBtn = document.getElementById('download-vcard-btn');
-  const shareProfileBtn = document.getElementById('share-profile-btn');
+  // Lightbox Elements
+  const lightbox = document.getElementById('photo-lightbox');
+  const lightboxImg = document.getElementById('lightbox-img');
+  const closeBtn = document.querySelector('.lightbox-close');
+  const photoContainer = document.getElementById('open-lightbox-trigger');
 
   // 1. Validate ID exists
   if (!studentId) {
@@ -78,15 +78,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     profileRole.textContent = roleText;
 
-    // Designation and Department mapping
+    // Set Department Directly in large text (no designation)
     if (student.department === "AI & DS") {
-      profileDesignation.textContent = "B.Sc";
       profileDept.textContent = "AI & DS";
     } else if (student.department === "AVIATION") {
-      profileDesignation.textContent = "BBA";
       profileDept.textContent = "AVIATION & LOGISTICS";
     } else {
-      profileDesignation.textContent = "Student";
       profileDept.textContent = student.department || "";
     }
 
@@ -101,11 +98,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       profileImg.src = student.photoUrl;
       profileImg.style.display = 'block';
       profileAvatar.style.display = 'none';
+      
+      // Enable Lightbox Trigger
+      photoContainer.style.cursor = 'zoom-in';
+      photoContainer.addEventListener('click', () => {
+        lightbox.style.display = 'block';
+        lightboxImg.src = student.photoUrl;
+      });
     } else {
       profileImg.style.display = 'none';
       const initialLetter = student.fullName ? student.fullName.trim().charAt(0).toUpperCase() : 'S';
       profileAvatar.textContent = initialLetter;
       profileAvatar.style.display = 'flex';
+      photoContainer.style.cursor = 'default';
     }
 
     // Bio Render
@@ -174,125 +179,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       socialPortfolio.style.display = 'none';
     }
 
-    // Generate QR Code client-side
-    generateQRCode();
-
-    // Wire share and download handlers
-    setupActionButtons(student);
-
     // Switch views
     loadingView.style.display = 'none';
     profileView.style.display = 'block';
   }
 
-  // 4. Client-side QR Code builder
-  function generateQRCode() {
-    const qrContainer = document.getElementById('qrcode');
-    qrContainer.innerHTML = ''; // clear
+  // Lightbox Close controls
+  closeBtn.addEventListener('click', () => {
+    lightbox.style.display = 'none';
+  });
 
-    try {
-      new QRCode(qrContainer, {
-        text: window.location.href,
-        width: 120,
-        height: 120,
-        colorDark: "#004687",
-        colorLight: "#ffffff",
-        correctLevel: QRCode.CorrectLevel.H
-      });
-    } catch (e) {
-      console.error("QR Code library generation error: ", e);
-      const encodedUrl = encodeURIComponent(window.location.href);
-      qrContainer.innerHTML = `<img src="https://chart.googleapis.com/chart?cht=qr&chs=120x120&chl=${encodedUrl}" alt="QR code" style="width:100%">`;
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox) {
+      lightbox.style.display = 'none';
     }
-  }
-
-  // 5. Wire action logic
-  function setupActionButtons(student) {
-    // Download QR Code
-    downloadQrBtn.addEventListener('click', () => {
-      try {
-        const qrContainer = document.getElementById('qrcode');
-        const canvas = qrContainer.querySelector('canvas');
-        const img = qrContainer.querySelector('img');
-        
-        let dataUrl = '';
-        if (canvas) {
-          dataUrl = canvas.toDataURL("image/png");
-        } else if (img && img.src) {
-          dataUrl = img.src;
-        } else {
-          throw new Error("QR elements not rendered yet.");
-        }
-
-        const link = document.createElement('a');
-        link.download = `student_qrcode_${student.fullName.replace(/\s+/g, '_').toLowerCase()}.png`;
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.show("QR Code downloaded successfully.", "success");
-      } catch (err) {
-        toast.show("Download failed. Try taking a screenshot instead.", "error");
-        console.error(err);
-      }
-    });
-
-    // Share Profile Link
-    shareProfileBtn.addEventListener('click', () => {
-      if (navigator.share) {
-        navigator.share({
-          title: `${student.fullName} - Student Digital Profile`,
-          text: `Check out the academic digital profile card of ${student.fullName} at Don Bosco College Mampetta.`,
-          url: window.location.href
-        }).catch(err => {
-          console.log("Sharing cancelled", err);
-        });
-      } else {
-        navigator.clipboard.writeText(window.location.href).then(() => {
-          toast.show("Profile link copied to clipboard for sharing!", "success");
-        }).catch(err => {
-          toast.show("Could not copy link: " + err, "error");
-        });
-      }
-    });
-
-    // Download contact card (.vcf)
-    downloadVcardBtn.addEventListener('click', () => {
-      try {
-        const vcardLines = [
-          "BEGIN:VCARD",
-          "VERSION:3.0",
-          `FN:${student.fullName}`,
-          `N:${student.fullName.split(' ').reverse().join(';')};;;`,
-          `ORG:${student.college}`,
-          `TITLE:${student.department}`,
-          `TEL;TYPE=CELL:${student.phoneNumber}`,
-          `EMAIL;TYPE=PREF,INTERNET:${student.email}`,
-          `NOTE:${student.aboutMe || ''}`,
-        ];
-
-        if (student.linkedinUrl) vcardLines.push(`URL;TYPE=LinkedIn:${student.linkedinUrl}`);
-        if (student.instagramUrl) vcardLines.push(`URL;TYPE=Instagram:${student.instagramUrl}`);
-        if (student.githubUrl) vcardLines.push(`URL;TYPE=GitHub:${student.githubUrl}`);
-        if (student.portfolioUrl) vcardLines.push(`URL;TYPE=Portfolio:${student.portfolioUrl}`);
-
-        vcardLines.push("END:VCARD");
-        
-        const vcardContent = vcardLines.join("\r\n");
-        const blob = new Blob([vcardContent], { type: 'text/vcard;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = `${student.fullName.replace(/\s+/g, '_').toLowerCase()}_contact.vcf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        toast.show("Contact vCard downloaded successfully.", "success");
-      } catch (err) {
-        toast.show("Contact card compilation failed: " + err.message, "error");
-      }
-    });
-  }
+  });
 });
