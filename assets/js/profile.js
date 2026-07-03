@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const profileRole = document.getElementById('profile-role');
   const profileImg = document.getElementById('profile-img');
   const profileAvatar = document.getElementById('profile-avatar');
+  const profileCollege = document.getElementById('profile-college');
   const profileDept = document.getElementById('profile-dept');
   const profileYear = document.getElementById('profile-year');
   const profileBio = document.getElementById('profile-bio');
@@ -69,28 +70,31 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderProfileCard(student) {
     profileFullName.textContent = student.fullName || "Student Profile";
     
-    // Set default Role status
-    let roleText = "STUDENT PROFILE";
+    // Set default Course tag above name (B.Sc / BBA / Student)
+    let courseText = "STUDENT";
     if (student.department === "AI & DS") {
-      roleText = "TECHNICAL TEAM";
+      courseText = "B.Sc";
     } else if (student.department === "AVIATION") {
-      roleText = "EXECUTIVE LEAD";
+      courseText = "B.B.A";
     }
-    profileRole.textContent = roleText;
+    profileRole.textContent = courseText;
 
-    // Set Department Directly in large text (no designation)
+    // Set College Name
+    profileCollege.textContent = student.college ? student.college.toUpperCase() : "DON BOSCO COLLEGE";
+
+    // Set Department directly
     if (student.department === "AI & DS") {
       profileDept.textContent = "AI & DS";
     } else if (student.department === "AVIATION") {
-      profileDept.textContent = "AVIATION & LOGISTICS";
+      profileDept.textContent = "AVIATION AND LOGISTICS";
     } else {
-      profileDept.textContent = student.department || "";
+      profileDept.textContent = student.department ? student.department.toUpperCase() : "";
     }
 
-    // Set dynamic academic year range based on submission date (default 4-year span)
+    // Set dynamic academic year range based on submission date (default 4-year span, e.g. 2024 — 2028)
     const startYear = student.submissionDate ? new Date(student.submissionDate).getFullYear() : 2024;
     const endYear = startYear + 4;
-    profileYear.textContent = `${startYear}-${endYear}`;
+    profileYear.textContent = `${startYear} — ${endYear}`;
 
     // Render photo or default initials-based avatar
     const hasPhoto = student.photoUrl && student.photoUrl.startsWith('http');
@@ -112,6 +116,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       profileAvatar.style.display = 'flex';
       photoContainer.style.cursor = 'default';
     }
+
+    // 3D Tilt Parallax Animation
+    setup3DTiltEffect();
 
     // Bio Render
     if (student.aboutMe && student.aboutMe.trim().length > 0) {
@@ -182,6 +189,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Switch views
     loadingView.style.display = 'none';
     profileView.style.display = 'block';
+  }
+
+  // 3D Tilt interactive animation calculation
+  function setup3DTiltEffect() {
+    photoContainer.addEventListener('mousemove', (e) => {
+      const rect = photoContainer.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      const xc = rect.width / 2;
+      const yc = rect.height / 2;
+      const angleX = (yc - y) / 8; // Rotates slightly based on vertical position
+      const angleY = (x - xc) / 8; // Rotates slightly based on horizontal position
+      
+      photoContainer.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale(1.06)`;
+      photoContainer.style.boxShadow = `${-angleY * 1.5}px ${angleX * 1.5}px 32px rgba(15, 76, 129, 0.28)`;
+    });
+
+    photoContainer.addEventListener('mouseleave', () => {
+      photoContainer.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+      photoContainer.style.boxShadow = `0 8px 30px rgba(0,0,0,0.12)`;
+    });
   }
 
   // Lightbox Close controls

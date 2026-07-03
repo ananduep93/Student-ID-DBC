@@ -6,7 +6,7 @@
   --text-gray: #4b5563;    /* Cool Gray */
   --text-light-gray: #9ca3af; /* Light Gray */
   --bg-light: #ffffff;     /* Plain White Background */
-  --border-color: #e5e7eb; /* Soft Border Line */
+  --border-color: #f3f4f6; /* Soft Border Line */
   --button-hover: #0a355a;
 }
 
@@ -42,42 +42,45 @@ body.profile-page-theme header.header {
   object-fit: contain;
 }
 
-/* Title above name */
+/* Course Tag above name (BBA / B.Sc) */
 .role-tag {
   font-family: 'Outfit', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 800;
-  color: var(--primary-blue);
+  color: var(--text-light-gray);
   letter-spacing: 2px;
   text-transform: uppercase;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   margin-top: 10px;
   opacity: 0;
   animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: 0.1s;
+  text-align: left;
 }
 
-/* Huge Bold Student Name */
+/* Huge Bold Student Name (Wraps into multiple lines) */
 .student-name {
   font-family: 'Outfit', sans-serif;
-  font-size: 48px;
+  font-size: 52px;
   font-weight: 900;
-  line-height: 0.95;
+  line-height: 0.9;
   letter-spacing: -2px;
   color: var(--text-dark);
-  margin-bottom: 30px;
+  margin-bottom: 35px;
   text-transform: uppercase;
   word-break: break-word;
   opacity: 0;
   animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   animation-delay: 0.2s;
+  text-align: left;
 }
 
-/* Two-column Profile Section */
-.profile-section {
+/* Centered Profile Details Section */
+.profile-section-centered {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 24px;
+  gap: 20px;
   margin-bottom: 35px;
   opacity: 0;
   animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -87,18 +90,21 @@ body.profile-page-theme header.header {
 .profile-photo-container {
   position: relative;
   flex-shrink: 0;
-  width: 150px;
-  height: 185px;
-  border-radius: 14px;
+  width: 220px; /* Centered, prominent photo size */
+  height: 270px;
+  border-radius: 1px; /* Plain rectangle with sharp/minimal border radius */
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(15, 76, 129, 0.12);
-  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+  background-color: #ffffff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
   opacity: 0;
   animation: scaleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   animation-delay: 0.35s;
 }
 
-/* Reflection Shine effect on Hover */
+/* Glossy sweep glare overlay */
 .profile-photo-container::after {
   content: '';
   position: absolute;
@@ -109,16 +115,12 @@ body.profile-page-theme header.header {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.4),
+    rgba(255, 255, 255, 0.3),
     transparent
   );
   transform: skewX(-20deg);
   transition: left 0.75s ease;
-}
-
-.profile-photo-container:hover {
-  transform: scale(1.05) translateY(-2px);
-  box-shadow: 0 15px 30px rgba(15, 76, 129, 0.22);
+  pointer-events: none;
 }
 
 .profile-photo-container:hover::after {
@@ -129,7 +131,6 @@ body.profile-page-theme header.header {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: filter 0.3s ease;
 }
 
 .avatar-plain {
@@ -141,39 +142,49 @@ body.profile-page-theme header.header {
   align-items: center;
   justify-content: center;
   font-family: 'Outfit', sans-serif;
-  font-size: 4rem;
+  font-size: 5rem;
   font-weight: 800;
   user-select: none;
 }
 
-.profile-info {
-  flex: 1;
+/* Centered Info Block */
+.profile-centered-info {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-top: 10px;
+  gap: 6px;
 }
 
-/* Department shown in large bold blue text instead of designation */
-.profile-info .department {
-  font-family: 'Outfit', sans-serif;
-  font-size: 28px;
-  font-weight: 900;
-  color: var(--primary-blue);
-  line-height: 1.1;
-  margin-bottom: 6px;
-  text-transform: uppercase;
-}
-
-.profile-info .year {
-  font-size: 15px;
+.college-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text-gray);
   letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.department-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
+}
+
+.year-title {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-light-gray);
 }
 
 .divider-line {
   height: 1px;
-  background-color: var(--border-color);
+  background-color: #f1f5f9;
   width: 100%;
   margin: 25px 0 10px 0;
   opacity: 0;
@@ -192,8 +203,8 @@ body.profile-page-theme header.header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border-color);
+  padding: 18px 0;
+  border-bottom: 1px solid #f1f5f9;
   text-decoration: none;
   color: var(--text-dark);
   transition: padding-left 0.25s ease, color 0.25s ease;
@@ -216,17 +227,16 @@ body.profile-page-theme header.header {
 
 .contact-label {
   font-family: 'Outfit', sans-serif;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  transition: color 0.2s ease;
 }
 
 .contact-arrow {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
-  color: var(--text-dark);
+  color: var(--text-light-gray);
   transition: transform 0.25s ease, color 0.25s ease;
 }
 
