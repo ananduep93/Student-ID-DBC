@@ -1,5 +1,4 @@
-import { db, isFirebaseConfigured } from './firebase-config.js';
-import { doc, setDoc, getDoc, collection, getDocs, query, orderBy, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
 
 // ─── Timeout Helper ──────────────────────────────────────────────────────────
 
@@ -24,6 +23,17 @@ const generateUniqueId = () => {
   }
   return id;
 };
+
+// ─── Supabase Configuration Check ────────────────────────────────────────────
+
+const isSupabaseConfigured = () => {
+  return SUPABASE_URL && SUPABASE_ANON_KEY && !SUPABASE_URL.includes('YOUR_');
+};
+
+const getSupabaseHeaders = () => ({
+  'apikey': SUPABASE_ANON_KEY,
+  'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+});
 
 // ─── MOCK Database (localStorage fallback) ───────────────────────────────────
 
@@ -60,7 +70,7 @@ const mockDB = {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// 1. Save Student Profile → Firestore (fallback: localStorage)
+// 1. Save Student Profile → Supabase (fallback: localStorage)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const saveStudentProfile = async (profileData) => {
@@ -73,42 +83,58 @@ export const saveStudentProfile = async (profileData) => {
     submissionDate
   };
 
-  if (isFirebaseConfigured() && db) {
+  if (isSupabaseConfigured()) {
     try {
-      await withTimeout(
-        setDoc(doc(db, "students", uniqueId), studentDoc),
+      const res = await withTimeout(
+        fetch(`${SUPABASE_URL}/rest/v1/students`, {
+          method: 'POST',
+          headers: {
+            ...getSupabaseHeaders(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(studentDoc)
+        }),
         10000,
-        "Firestore write timed out. Check your Firestore rules allow public writes."
+        "Supabase write timed out."
       );
-      console.log("Firestore: profile saved with ID:", uniqueId);
+      if (!res.ok) {
+        throw new Error(`Supabase error: ${res.status} ${await res.text()}`);
+      }
+      console.log("Supabase: profile saved with ID:", uniqueId);
       return uniqueId;
     } catch (error) {
-      console.error("Firestore save error, falling back to localStorage:", error);
+      console.error("Supabase save error, falling back to localStorage:", error);
       mockDB.addProfile(studentDoc);
       return uniqueId;
     }
   } else {
-    console.log("Firebase not configured. Saving to localStorage.");
+    console.log("Supabase not configured. Saving to localStorage.");
     mockDB.addProfile(studentDoc);
     return uniqueId;
   }
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// 2. Get Single Student Profile → Firestore (fallback: localStorage)
+// 2. Get Single Student Profile → Supabase (fallback: localStorage)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const getStudentProfile = async (id) => {
-  if (isFirebaseConfigured() && db) {
+  if (isSupabaseConfigured()) {
     try {
-      const docSnap = await withTimeout(
-        getDoc(doc(db, "students", id)),
+      const res = await withTimeout(
+        fetch(`${SUPABASE_URL}/rest/v1/students?id=eq.${id}&select=*`, {
+          headers: getSupabaseHeaders()
+        }),
         10000,
-        "Firestore fetch timed out."
+        "Supabase fetch timed out."
       );
-      return docSnap.exists() ? docSnap.data() : null;
+      if (!res.ok) {
+        throw new Error(`Supabase fetch failed: ${res.status}`);
+      }
+      const data = await res.json();
+      return data.length > 0 ? data[0] : null;
     } catch (error) {
-      console.error("Firestore get error, falling back to localStorage:", error);
+      console.error("Supabase get error, falling back to localStorage:", error);
       return mockDB.getProfile(id);
     }
   } else {
@@ -117,23 +143,25 @@ export const getStudentProfile = async (id) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// 3. Get All Student Profiles → Firestore (fallback: localStorage)
+// 3. Get All Student Profiles → Supabase (fallback: localStorage)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const getAllStudentProfiles = async () => {
-  if (isFirebaseConfigured() && db) {
+  if (isSupabaseConfigured()) {
     try {
-      const q = query(collection(db, "students"), orderBy("submissionDate", "desc"));
-      const snapshot = await withTimeout(
-        getDocs(q),
+      const res = await withTimeout(
+        fetch(`${SUPABASE_URL}/rest/v1/students?select=*&order=submissionDate.desc`, {
+          headers: getSupabaseHeaders()
+        }),
         10000,
-        "Firestore query timed out."
+        "Supabase query timed out."
       );
-      const students = [];
-      snapshot.forEach(docSnap => students.push(docSnap.data()));
-      return students;
+      if (!res.ok) {
+        throw new Error(`Supabase query failed: ${res.status}`);
+      }
+      return await res.json();
     } catch (error) {
-      console.error("Firestore getAll error, falling back to localStorage:", error);
+      console.error("Supabase getAll error, falling back to localStorage:", error);
       return mockDB.getProfiles().sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
     }
   } else {
@@ -142,20 +170,30 @@ export const getAllStudentProfiles = async () => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// 4. Update Student Profile → Firestore (fallback: localStorage)
+// 4. Update Student Profile → Supabase (fallback: localStorage)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const updateStudentProfile = async (id, updatedFields) => {
-  if (isFirebaseConfigured() && db) {
+  if (isSupabaseConfigured()) {
     try {
-      await withTimeout(
-        updateDoc(doc(db, "students", id), updatedFields),
+      const res = await withTimeout(
+        fetch(`${SUPABASE_URL}/rest/v1/students?id=eq.${id}`, {
+          method: 'PATCH',
+          headers: {
+            ...getSupabaseHeaders(),
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(updatedFields)
+        }),
         10000,
-        "Firestore update timed out."
+        "Supabase update timed out."
       );
+      if (!res.ok) {
+        throw new Error(`Supabase update failed: ${res.status} ${await res.text()}`);
+      }
       return true;
     } catch (error) {
-      console.error("Firestore update error, falling back to localStorage:", error);
+      console.error("Supabase update error, falling back to localStorage:", error);
       return mockDB.updateProfile(id, updatedFields);
     }
   } else {
@@ -164,20 +202,26 @@ export const updateStudentProfile = async (id, updatedFields) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// 5. Delete Student Profile → Firestore (fallback: localStorage)
+// 5. Delete Student Profile → Supabase (fallback: localStorage)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const deleteStudentProfile = async (id) => {
-  if (isFirebaseConfigured() && db) {
+  if (isSupabaseConfigured()) {
     try {
-      await withTimeout(
-        deleteDoc(doc(db, "students", id)),
+      const res = await withTimeout(
+        fetch(`${SUPABASE_URL}/rest/v1/students?id=eq.${id}`, {
+          method: 'DELETE',
+          headers: getSupabaseHeaders()
+        }),
         10000,
-        "Firestore delete timed out."
+        "Supabase delete timed out."
       );
+      if (!res.ok) {
+        throw new Error(`Supabase delete failed: ${res.status}`);
+      }
       return true;
     } catch (error) {
-      console.error("Firestore delete error, falling back to localStorage:", error);
+      console.error("Supabase delete error, falling back to localStorage:", error);
       mockDB.deleteProfile(id);
       return true;
     }
