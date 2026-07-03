@@ -1,10 +1,9 @@
 // Directly import from config.js — no lazy loading, no timing issues
 import { firebaseConfig as realConfig } from './config.js';
 
-// Dynamically import Firebase core and services statically from CDN
+// Dynamically import Firebase core and Firestore statically from CDN
 import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const PLACEHOLDER = "YOUR_FIREBASE_";
 
@@ -24,7 +23,6 @@ export const isFirebaseConfigured = () => {
 // Global Firebase instances
 export let app = null;
 export let db = null;
-export let storage = null;
 
 if (isFirebaseConfigured()) {
   try {
@@ -35,8 +33,7 @@ if (isFirebaseConfigured()) {
       app = getApps()[0];
     }
     db = getFirestore(app);
-    storage = getStorage(app);
-    console.log("Firebase statically initialized successfully (Firestore + Storage)!");
+    console.log("Firebase Firestore statically initialized successfully!");
   } catch (error) {
     console.error("Firebase static initialization failed:", error);
   }

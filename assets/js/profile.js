@@ -12,7 +12,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const profileView = document.getElementById('profile-view');
 
   // Data Elements
-  const profileImg = document.getElementById('profile-img');
   const profileFirstName = document.getElementById('profile-first-name');
   const profileLastName = document.getElementById('profile-last-name');
   const profileDesignation = document.getElementById('profile-designation');
@@ -64,9 +63,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 3. Render Profile
   function renderProfileCard(student) {
-    // Basic Details
-    profileImg.src = student.photoUrl || 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?q=80&w=256&auto=format&fit=crop';
-    
     // Split full name into first and last name
     const nameParts = (student.fullName || "").trim().split(/\s+/);
     let firstName = student.fullName || "";

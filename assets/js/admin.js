@@ -31,11 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const emptyState = document.getElementById('table-empty-state');
   const downloadCsvBtn = document.getElementById('download-csv-btn');
 
-  // Lightbox Modal
-  const lightboxModal = document.getElementById('lightbox-modal');
-  const lightboxImage = document.getElementById('lightbox-image');
-  const lightboxClose = document.getElementById('lightbox-close');
-
   // Edit Modal
   const editModal = document.getElementById('edit-modal');
   const editModalClose = document.getElementById('edit-modal-close');
@@ -176,11 +171,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const deptClass = student.department === 'AI & DS' ? 'aids' : 'aviation';
+      const initialLetter = student.fullName ? student.fullName.charAt(0).toUpperCase() : 'S';
       
       tr.innerHTML = `
         <td data-label="Student Details" class="student-cell-td">
           <div class="student-cell">
-            <img class="student-thumbnail" src="${student.photoUrl}" alt="${student.fullName}" title="Click to view full photo">
+            <div class="student-thumbnail" title="Student Avatar">${initialLetter}</div>
             <div class="student-info-mini">
               <span class="student-name-mini">${student.fullName}</span>
               <span class="student-reg-mini">Submitted: ${formattedDate}</span>
@@ -220,12 +216,6 @@ document.addEventListener('DOMContentLoaded', () => {
       `;
       
       studentsList.appendChild(tr);
-
-      // Photo Lightbox trigger
-      tr.querySelector('.student-thumbnail').addEventListener('click', () => {
-        lightboxImage.src = student.photoUrl;
-        lightboxModal.classList.add('active');
-      });
     });
 
     // Wire up actions
@@ -299,17 +289,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 3. Modals handling
-  // Lightbox Close
-  lightboxClose.addEventListener('click', () => {
-    lightboxModal.classList.remove('active');
-  });
-  
-  lightboxModal.addEventListener('click', (e) => {
-    if (e.target === lightboxModal) {
-      lightboxModal.classList.remove('active');
-    }
-  });
-
   // Edit Modal controls
   function openEditModal(student) {
     editId.value = student.id;
@@ -372,7 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const headers = [
         "ID", "Full Name", "College", "Department",
-        "Phone Number", "Email", "Submission Date", "Photo URL",
+        "Phone Number", "Email", "Submission Date",
         "LinkedIn", "Instagram", "GitHub", "Portfolio", "Skills", "Bio"
       ];
 
@@ -388,7 +367,6 @@ document.addEventListener('DOMContentLoaded', () => {
           s.phoneNumber || '',
           s.email || '',
           s.submissionDate || '',
-          s.photoUrl || '',
           s.linkedinUrl || '',
           s.instagramUrl || '',
           s.githubUrl || '',

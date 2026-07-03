@@ -1,5 +1,5 @@
 import toast from './toast.js';
-import { uploadProfilePhoto, saveStudentProfile } from './api.js';
+import { saveStudentProfile } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Stepper State
@@ -14,15 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const loadingOverlay = document.getElementById('loading-overlay');
   const loadingText = document.getElementById('loading-text');
 
-  // Photo Upload Elements
-  const photoInput = document.getElementById('photo-input');
-  const uploadZone = document.getElementById('upload-zone');
-  const previewContainer = document.getElementById('preview-container');
-  const previewImage = document.getElementById('preview-image');
-  const removePhotoBtn = document.getElementById('remove-photo-btn');
-  const photoErrorMsg = document.getElementById('photo-error-msg');
-  let selectedPhotoFile = null;
-
   // Skills Tag Elements
   const skillsInput = document.getElementById('skills-input');
   const skillsContainer = document.getElementById('skills-container');
@@ -34,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const charCounter = document.getElementById('char-counter');
 
   // Pre-fill / Setup inputs
-  setupPhotoUpload();
   setupSkillsTags();
   setupBioCounter();
 
@@ -54,93 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
         charCounter.style.color = 'var(--text-muted)';
       }
     });
-  }
-
-  // File Upload Drag & Drop + Click logic
-  function setupPhotoUpload() {
-    // Click to upload
-    uploadZone.addEventListener('click', () => {
-      photoInput.click();
-    });
-
-    photoInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) {
-        handleFileSelection(e.target.files[0]);
-      }
-    });
-
-    // Drag and Drop
-    ['dragenter', 'dragover'].forEach(eventName => {
-      uploadZone.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        uploadZone.classList.add('dragover');
-      }, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-      uploadZone.addEventListener(eventName, (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        uploadZone.classList.remove('dragover');
-      }, false);
-    });
-
-    uploadZone.addEventListener('drop', (e) => {
-      const dt = e.dataTransfer;
-      const files = dt.files;
-      if (files.length > 0) {
-        handleFileSelection(files[0]);
-      }
-    });
-
-    // Remove photo
-    removePhotoBtn.addEventListener('click', () => {
-      selectedPhotoFile = null;
-      photoInput.value = '';
-      previewContainer.classList.remove('active');
-      uploadZone.style.display = 'flex';
-      
-      const parentGroup = photoInput.closest('.form-group');
-      parentGroup.classList.remove('success');
-    });
-  }
-
-  function handleFileSelection(file) {
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    const maxBytes = 5 * 1024 * 1024; // 5MB
-
-    const parentGroup = photoInput.closest('.form-group');
-
-    if (!validTypes.includes(file.type)) {
-      toast.show("Please upload a valid image (JPG, PNG, or WebP).", "error");
-      parentGroup.classList.add('error');
-      photoErrorMsg.style.display = 'block';
-      photoErrorMsg.textContent = 'Only JPG, PNG and WebP files are accepted.';
-      return;
-    }
-
-    if (file.size > maxBytes) {
-      toast.show("File size exceeds 5MB limit.", "error");
-      parentGroup.classList.add('error');
-      photoErrorMsg.style.display = 'block';
-      photoErrorMsg.textContent = 'Image must be smaller than 5MB.';
-      return;
-    }
-
-    selectedPhotoFile = file;
-    parentGroup.classList.remove('error');
-    parentGroup.classList.add('success');
-    photoErrorMsg.style.display = 'none';
-
-    // Show preview
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      previewImage.src = e.target.result;
-      uploadZone.style.display = 'none';
-      previewContainer.classList.add('active');
-    };
-    reader.readAsDataURL(file);
   }
 
   // Skills input helper
@@ -245,19 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const name = document.getElementById('full-name');
       isValid = validateField(name, name.value.trim().length > 0) && isValid;
 
-      // 2. Validate photo file upload
-      const parentGroup = photoInput.closest('.form-group');
-      if (!selectedPhotoFile) {
-        isValid = false;
-        parentGroup.classList.add('error');
-        photoErrorMsg.style.display = 'block';
-        photoErrorMsg.textContent = 'A profile photo is required.';
-      } else {
-        parentGroup.classList.remove('error');
-        photoErrorMsg.style.display = 'none';
-      }
-
-      // 3. Validate department
+      // 2. Validate department
       const dept = document.getElementById('department');
       isValid = validateField(dept, dept.value !== "") && isValid;
     }
@@ -376,17 +267,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Activate loading screen
     loadingOverlay.classList.add('active');
-    loadingText.textContent = "Uploading profile photo to storage server...";
+    loadingText.textContent = "Saving profile information...";
 
     try {
-      // 1. Upload photo to ImageBB (gets URL)
-      const photoUrl = await uploadProfilePhoto(selectedPhotoFile);
-
-      // 2. Prepare payload
-      loadingText.textContent = "Saving profile information...";
+      // 1. Prepare payload
       const profileData = {
         fullName: document.getElementById('full-name').value.trim(),
-        photoUrl: photoUrl,
         college: document.getElementById('college').value.trim(),
         department: document.getElementById('department').value,
         phoneNumber: document.getElementById('phone-number').value.trim(),
@@ -399,7 +285,7 @@ document.addEventListener('DOMContentLoaded', () => {
         aboutMe: aboutMe.value.trim()
       };
 
-      // 3. Save details to Firestore (or localMock)
+      // 2. Save details to Firestore (or localMock)
       const profileId = await saveStudentProfile(profileData);
       
       console.log("Successfully generated profile ID: ", profileId);
