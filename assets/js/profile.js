@@ -239,11 +239,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       photoContainer.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateY(${angleY}deg) scale(1.06)`;
       photoContainer.style.boxShadow = `${-angleY * 1.5}px ${angleX * 1.5}px 32px rgba(15, 76, 129, 0.28)`;
+
+      // Set CSS Variables for the cursor spotlight glare effect
+      const xPercent = (x / rect.width) * 100;
+      const yPercent = (y / rect.height) * 100;
+      photoContainer.style.setProperty('--x', `${xPercent}%`);
+      photoContainer.style.setProperty('--y', `${yPercent}%`);
     });
 
     photoContainer.addEventListener('mouseleave', () => {
       photoContainer.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
       photoContainer.style.boxShadow = `0 8px 30px rgba(0,0,0,0.12)`;
+      photoContainer.style.setProperty('--x', `50%`);
+      photoContainer.style.setProperty('--y', `50%`);
     });
   }
 
