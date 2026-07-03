@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const statTotal = document.getElementById('stat-total');
   const statAids = document.getElementById('stat-aids');
   const statAviation = document.getElementById('stat-aviation');
+  const statHospital = document.getElementById('stat-hospital');
 
   // Search, Filter & Sort
   const searchInput = document.getElementById('search-input');
@@ -110,11 +111,20 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateStats() {
     statTotal.textContent = studentsData.length;
     
-    const aidsCount = studentsData.filter(s => s.department === 'AI & DS').length;
+    const aidsCount = studentsData.filter(s => 
+      s.department === 'ARTIFICIAL INTELLIGENCE & DATA SCIENCE' || s.department === 'AI & DS'
+    ).length;
     statAids.textContent = aidsCount;
     
-    const aviationCount = studentsData.filter(s => s.department === 'AVIATION').length;
+    const aviationCount = studentsData.filter(s => 
+      s.department === 'AVIATION & LOGISTICS' || s.department === 'AVIATION'
+    ).length;
     statAviation.textContent = aviationCount;
+
+    const hospitalCount = studentsData.filter(s => 
+      s.department === 'HOSPITAL ADMINISTRATION & HEALTH CARE MANAGEMENT'
+    ).length;
+    statHospital.textContent = hospitalCount;
   }
 
   // Search & Filters listener
@@ -133,7 +143,16 @@ document.addEventListener('DOMContentLoaded', () => {
         student.fullName.toLowerCase().includes(search) ||
         student.email.toLowerCase().includes(search);
         
-      const matchesDept = deptFilter === 'ALL' || student.department === deptFilter;
+      let matchesDept = false;
+      if (deptFilter === 'ALL') {
+        matchesDept = true;
+      } else if (deptFilter === 'ARTIFICIAL INTELLIGENCE & DATA SCIENCE') {
+        matchesDept = student.department === 'ARTIFICIAL INTELLIGENCE & DATA SCIENCE' || student.department === 'AI & DS';
+      } else if (deptFilter === 'AVIATION & LOGISTICS') {
+        matchesDept = student.department === 'AVIATION & LOGISTICS' || student.department === 'AVIATION';
+      } else {
+        matchesDept = student.department === deptFilter;
+      }
       
       return matchesSearch && matchesDept;
     });
