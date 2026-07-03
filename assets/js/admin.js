@@ -1,5 +1,6 @@
 import toast from './toast.js';
 import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile } from './api.js';
+import { IMAGEBB_API_KEY } from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Session Keys
@@ -173,10 +174,16 @@ document.addEventListener('DOMContentLoaded', () => {
       const deptClass = student.department === 'AI & DS' ? 'aids' : 'aviation';
       const initialLetter = student.fullName ? student.fullName.charAt(0).toUpperCase() : 'S';
       
+      // Check if student has an uploaded photoUrl
+      const hasPhoto = student.photoUrl && student.photoUrl.startsWith('http');
+      const avatarHTML = hasPhoto
+        ? `<img class="student-thumbnail" src="${student.photoUrl}" alt="${student.fullName}" style="object-fit: cover; width: 44px; height: 44px; border-radius: 6px; border: 2px solid var(--glass-border);">`
+        : `<div class="student-thumbnail" title="Student Avatar">${initialLetter}</div>`;
+      
       tr.innerHTML = `
         <td data-label="Student Details" class="student-cell-td">
           <div class="student-cell">
-            <div class="student-thumbnail" title="Student Avatar">${initialLetter}</div>
+            ${avatarHTML}
             <div class="student-info-mini">
               <span class="student-name-mini">${student.fullName}</span>
               <span class="student-reg-mini">Submitted: ${formattedDate}</span>
@@ -200,7 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
             </button>
             
             <button class="btn btn-icon copy-link-btn" data-id="${student.id}" title="Copy Profile Link">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+            
+            <button class="btn btn-icon upload-photo-btn" data-id="${student.id}" title="Upload Profile Photo">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
             </button>
             
             <button class="btn btn-icon edit-btn" data-id="${student.id}" title="Edit Profile Details">
@@ -393,6 +404,85 @@ document.addEventListener('DOMContentLoaded', () => {
       toast.show("CSV Export downloaded successfully.", "success");
     } catch (err) {
       toast.show("Failed to export data: " + err.message, "error");
+    }
+  });
+
+  // 5. Admin Photo Upload Feature
+  const photoUploadInput = document.getElementById('admin-photo-upload-input');
+  let activeStudentIdForUpload = null;
+
+  // Track active student on click of upload-photo-btn
+  document.addEventListener('click', (e) => {
+    const uploadBtn = e.target.closest('.upload-photo-btn');
+    if (uploadBtn) {
+      activeStudentIdForUpload = uploadBtn.getAttribute('data-id');
+      photoUploadInput.click();
+    }
+  });
+
+  photoUploadInput.addEventListener('change', async (e) => {
+    if (!activeStudentIdForUpload || e.target.files.length === 0) return;
+
+    const file = e.target.files[0];
+    const studentId = activeStudentIdForUpload;
+    
+    // Reset file input and tracking variable
+    photoUploadInput.value = '';
+    activeStudentIdForUpload = null;
+
+    // Validate file type & size (5MB max)
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast.show("Please upload a valid image file (JPG, PNG, or WebP).", "error");
+      return;
+    }
+    
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      toast.show("File size exceeds 5MB limit.", "error");
+      return;
+    }
+
+    loadingOverlay.classList.add('active');
+    const loadingText = document.getElementById('loading-text');
+    if (loadingText) {
+      loadingText.textContent = "Uploading photo to ImgBB...";
+    }
+
+    try {
+      // Create Form Data for ImgBB API
+      const formData = new FormData();
+      formData.append("image", file);
+
+      // Perform POST fetch to ImgBB
+      const response = await Promise.race([
+        fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
+          method: "POST",
+          body: formData
+        }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("ImgBB upload timed out.")), 25000))
+      ]);
+
+      const result = await response.json();
+      if (!result.success) {
+        throw new Error(result.error?.message || "Failed to upload to ImgBB.");
+      }
+
+      const imageUrl = result.data.url;
+
+      // Update student profile document in Firestore
+      if (loadingText) {
+        loadingText.textContent = "Saving image link to student profile...";
+      }
+      await updateStudentProfile(studentId, { photoUrl: imageUrl });
+
+      toast.show("Profile image uploaded successfully!", "success");
+      await loadDashboardData();
+    } catch (err) {
+      console.error(err);
+      toast.show("Upload failed: " + err.message, "error");
+    } finally {
+      loadingOverlay.classList.remove('active');
     }
   });
 });

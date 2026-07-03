@@ -4,25 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Student Digital Profile</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./assets/css/style.css">
   <link rel="stylesheet" href="./assets/css/profile.css">
 </head>
 <body class="profile-page-theme">
 
-  <!-- Background Particles -->
-  <div class="bg-particles" id="particles"></div>
-
   <div class="container">
     <!-- Header -->
-    <header class="header fade-in">
-      <a href="./index.html" class="logo">
-        <div class="logo-icon">DBC</div>
-        <div class="logo-text">DBC Mampetta <span>ID Card</span></div>
+    <header class="header">
+      <a href="./index.html" class="back-btn" aria-label="Go back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
       </a>
-      <a href="./index.html" class="btn btn-secondary btn-sm" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-color: var(--gray-dark); color: var(--white); background: transparent;">
-        Home
-      </a>
+      <div class="header-logo">
+        <span class="logo-txt">iD</span>
+        <span class="logo-sub">DBC</span>
+      </div>
     </header>
 
     <!-- Main Dynamic Container -->
@@ -31,37 +28,43 @@
       <!-- 1. LOADING STATE -->
       <div id="loading-view" class="profile-placeholder-state">
         <div class="spinner"></div>
-        <p class="loading-text" style="color: var(--gold);">Fetching digital profile details...</p>
+        <p class="loading-text">Fetching digital profile details...</p>
       </div>
 
       <!-- 2. ERROR STATE (PROFILE NOT FOUND) -->
       <div id="error-view" class="profile-error-card" style="display: none;">
-        <div style="font-size: 3rem; color: var(--gold);">⚠️</div>
-        <h1 style="font-size: 1.5rem; color: var(--white); font-family: 'Playfair Display', serif;">Profile Not Found</h1>
-        <p style="color: var(--gray); line-height: 1.5; font-size: 0.9rem;">
-          The profile link you followed appears to be invalid or has been removed by the administrator.
-        </p>
+        <div style="font-size: 3rem; color: var(--accent-primary);">⚠️</div>
+        <h1>Profile Not Found</h1>
+        <p>The profile link you followed appears to be invalid or has been removed by the administrator.</p>
         <a href="./index.html" class="gold-btn" style="width: 100%;">Return to Home</a>
       </div>
 
       <!-- 3. PROFILE DETAILS CARD -->
-      <article id="profile-view" class="hero-card fade-in delay-1" style="display: none;">
-        <div class="card-accent"></div>
+      <article id="profile-view" style="display: none;">
+        
+        <!-- Role/Header text above name -->
+        <div class="role-tag" id="profile-role">EXECUTIVE LEAD</div>
+        
+        <!-- Huge bold student name -->
+        <h1 class="student-name" id="profile-full-name">ANSHIF TK</h1>
 
-        <h1 class="name" id="profile-first-name">Student</h1>
-        <h1 class="surname" id="profile-last-name">Profile</h1>
-
+        <!-- Profile Section: Image left, details right -->
         <div class="profile-section">
+          <div class="profile-photo-container">
+            <img id="profile-img" class="photo-plain" src="" alt="Student Profile Photo" style="display: none;">
+            <div id="profile-avatar" class="avatar-plain" style="display: none;">A</div>
+          </div>
+          
           <div class="profile-info">
-            <div class="designation" id="profile-designation">BBA</div>
-            <div class="department" id="profile-dept">AVIATION</div>
-            <div class="year" id="profile-college">DON BOSCO COLLEGE MAMPETTA</div>
+            <div class="designation" id="profile-designation">MEDIA LEAD</div>
+            <div class="department" id="profile-dept">COMPUTER SCIENCE</div>
+            <div class="year" id="profile-year">2024-2028</div>
           </div>
         </div>
 
-        <div class="gold-line"></div>
+        <div class="divider-line"></div>
 
-        <!-- Contact Links -->
+        <!-- Contact Links Stack -->
         <div class="contact-section">
           <a id="social-linkedin" href="" target="_blank" class="contact-item">
             <span class="contact-label">LinkedIn</span>
@@ -69,6 +72,10 @@
           </a>
           <a id="social-instagram" href="" target="_blank" class="contact-item">
             <span class="contact-label">Instagram</span>
+            <span class="contact-arrow">↗</span>
+          </a>
+          <a id="social-whatsapp" href="" target="_blank" class="contact-item">
+            <span class="contact-label">WhatsApp</span>
             <span class="contact-arrow">↗</span>
           </a>
           <a id="social-github" href="" target="_blank" class="contact-item">
@@ -90,9 +97,9 @@
         </div>
 
         <!-- About Me / Bio Section -->
-        <div class="skills-section">
+        <div class="skills-section" id="bio-section">
           <h2 class="section-title">About Me</h2>
-          <p id="profile-bio" style="font-size: 13px; line-height: 1.6; color: var(--gray); font-style: italic; background: var(--black-light); border: 1px solid var(--gray-dark); border-radius: 16px; padding: 20px; text-align: left;">
+          <p id="profile-bio" class="bio-text">
             Bio details loaded dynamically.
           </p>
         </div>
@@ -100,24 +107,24 @@
         <!-- Skills Section -->
         <div class="skills-section" id="skills-section">
           <h2 class="section-title">Skills & Expertise</h2>
-          <div id="profile-skills" style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; margin-top: 10px;">
+          <div id="profile-skills" class="skills-list">
             <!-- Dynamically populated badges -->
           </div>
         </div>
 
-        <!-- Share & QR Actions Card -->
+        <!-- Share & QR Actions Section -->
         <div class="skills-section" id="qr-section">
           <h2 class="section-title">Share & Connect</h2>
-          <div style="background: var(--black-light); border: 1px solid var(--gray-dark); border-radius: 20px; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%;">
-            <div style="background: white; padding: 10px; border-radius: 12px; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" id="qrcode-wrapper">
+          <div class="qr-card">
+            <div id="qrcode-wrapper" class="qrcode-wrapper">
               <div id="qrcode"></div>
             </div>
             
-            <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+            <div class="qr-buttons">
               <button id="download-vcard-btn" class="gold-btn">
                 Save Contact (vCard)
               </button>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%;">
                 <button id="download-qr-btn" class="gold-btn-secondary">
                   QR Code
                 </button>
@@ -140,34 +147,10 @@
 
   <!-- Scroll to top -->
   <div class="scroll-indicator" onclick="window.scrollTo({top:0,behavior:'smooth'})">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--gold);">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <path d="M18 15l-6-6-6 6"/>
     </svg>
   </div>
-
-  <!-- Generate background particles -->
-  <script>
-    const particlesContainer = document.getElementById('particles');
-    for (let i = 0; i < 30; i++) {
-      const particle = document.createElement('div');
-      particle.className = 'particle';
-      particle.style.left = Math.random() * 100 + '%';
-      particle.style.top = Math.random() * 100 + '%';
-      particle.style.animationDelay = Math.random() * 15 + 's';
-      particle.style.animationDuration = (10 + Math.random() * 10) + 's';
-      particlesContainer.appendChild(particle);
-    }
-
-    // Parallax card effect
-    document.addEventListener('mousemove', (e) => {
-      const x = (e.clientX / window.innerWidth - 0.5) * 20;
-      const y = (e.clientY / window.innerHeight - 0.5) * 20;
-      const cards = document.querySelectorAll('.hero-card');
-      cards.forEach(card => {
-        card.style.transform = `perspective(1000px) rotateY(${x * 0.15}deg) rotateX(${-y * 0.15}deg)`;
-      });
-    });
-  </script>
 
   <!-- QRCode.js CDN Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" integrity="sha512-CNgIRecGo7nOMQLkYB/iOCRYKQyCSLZHibCxhyjILkvt5T5ECtqWwjYzn+ToNJfm4HXRGo6DQyT3YOHGz613cQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>

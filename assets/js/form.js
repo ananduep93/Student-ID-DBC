@@ -131,9 +131,13 @@ document.addEventListener('DOMContentLoaded', () => {
       clearFieldStatus(portfolio);
     }
 
-    // 7. About Me (10 - 200 chars, required)
+    // 7. About Me (10 - 200 chars, optional)
     const len = aboutMe.value.trim().length;
-    isValid = validateField(aboutMe, len >= 10 && len <= 200) && isValid;
+    if (len > 0) {
+      isValid = validateField(aboutMe, len >= 10 && len <= 200) && isValid;
+    } else {
+      clearFieldStatus(aboutMe);
+    }
 
     return isValid;
   }
@@ -185,7 +189,11 @@ document.addEventListener('DOMContentLoaded', () => {
           validateField(input, isValidURL(input.value.trim()));
         } else if (input.id === 'about-me') {
           const l = input.value.trim().length;
-          validateField(input, l >= 10 && l <= 200);
+          if (l > 0) {
+            validateField(input, l >= 10 && l <= 200);
+          } else {
+            clearFieldStatus(input);
+          }
         } else {
           validateField(input, input.value.trim().length > 0);
         }

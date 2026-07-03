@@ -12,12 +12,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const profileView = document.getElementById('profile-view');
 
   // Data Elements
-  const profileFirstName = document.getElementById('profile-first-name');
-  const profileLastName = document.getElementById('profile-last-name');
+  const profileFullName = document.getElementById('profile-full-name');
+  const profileRole = document.getElementById('profile-role');
+  const profileImg = document.getElementById('profile-img');
+  const profileAvatar = document.getElementById('profile-avatar');
   const profileDesignation = document.getElementById('profile-designation');
   const profileDept = document.getElementById('profile-dept');
-  const profileCollege = document.getElementById('profile-college');
+  const profileYear = document.getElementById('profile-year');
   const profileBio = document.getElementById('profile-bio');
+  const bioSection = document.getElementById('bio-section');
   const profileSkills = document.getElementById('profile-skills');
   const skillsSection = document.getElementById('skills-section');
 
@@ -27,6 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const socialLinkedin = document.getElementById('social-linkedin');
   const socialInstagram = document.getElementById('social-instagram');
+  const socialWhatsapp = document.getElementById('social-whatsapp');
   const socialGithub = document.getElementById('social-github');
   const socialPortfolio = document.getElementById('social-portfolio');
 
@@ -63,16 +67,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 3. Render Profile
   function renderProfileCard(student) {
-    // Split full name into first and last name
-    const nameParts = (student.fullName || "").trim().split(/\s+/);
-    let firstName = student.fullName || "";
-    let lastName = "";
-    if (nameParts.length > 1) {
-      lastName = nameParts.pop();
-      firstName = nameParts.join(" ");
+    profileFullName.textContent = student.fullName || "Student Profile";
+    
+    // Set default Role status
+    let roleText = "STUDENT PROFILE";
+    if (student.department === "AI & DS") {
+      roleText = "TECHNICAL TEAM";
+    } else if (student.department === "AVIATION") {
+      roleText = "EXECUTIVE LEAD";
     }
-    profileFirstName.textContent = firstName;
-    profileLastName.textContent = lastName;
+    profileRole.textContent = roleText;
 
     // Designation and Department mapping
     if (student.department === "AI & DS") {
@@ -86,8 +90,31 @@ document.addEventListener('DOMContentLoaded', async () => {
       profileDept.textContent = student.department || "";
     }
 
-    profileCollege.textContent = student.college || "DON BOSCO COLLEGE MAMPETTA";
-    profileBio.textContent = student.aboutMe;
+    // Set dynamic academic year range based on submission date (default 4-year span)
+    const startYear = student.submissionDate ? new Date(student.submissionDate).getFullYear() : 2024;
+    const endYear = startYear + 4;
+    profileYear.textContent = `${startYear}-${endYear}`;
+
+    // Render photo or default initials-based avatar
+    const hasPhoto = student.photoUrl && student.photoUrl.startsWith('http');
+    if (hasPhoto) {
+      profileImg.src = student.photoUrl;
+      profileImg.style.display = 'block';
+      profileAvatar.style.display = 'none';
+    } else {
+      profileImg.style.display = 'none';
+      const initialLetter = student.fullName ? student.fullName.trim().charAt(0).toUpperCase() : 'S';
+      profileAvatar.textContent = initialLetter;
+      profileAvatar.style.display = 'flex';
+    }
+
+    // Bio Render
+    if (student.aboutMe && student.aboutMe.trim().length > 0) {
+      profileBio.textContent = student.aboutMe;
+      bioSection.style.display = 'block';
+    } else {
+      bioSection.style.display = 'none';
+    }
 
     // Skills Render (using .skill-tag class)
     profileSkills.innerHTML = '';
@@ -108,13 +135,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     contactPhone.href = `tel:${student.phoneNumber}`;
     contactEmail.href = `mailto:${student.email}`;
 
+    // WhatsApp dynamic link construction (links to wa.me)
+    if (student.phoneNumber) {
+      const cleanPhone = student.phoneNumber.replace(/\D/g, '');
+      const prefixedPhone = cleanPhone.length === 10 ? `91${cleanPhone}` : cleanPhone;
+      socialWhatsapp.href = `https://wa.me/${prefixedPhone}`;
+      socialWhatsapp.style.display = 'flex';
+    } else {
+      socialWhatsapp.style.display = 'none';
+    }
+
     // Social Links visibility
-    let visibleSocials = 0;
-    
     if (student.linkedinUrl) {
       socialLinkedin.href = student.linkedinUrl;
       socialLinkedin.style.display = 'flex';
-      visibleSocials++;
     } else {
       socialLinkedin.style.display = 'none';
     }
@@ -122,7 +156,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (student.instagramUrl) {
       socialInstagram.href = student.instagramUrl;
       socialInstagram.style.display = 'flex';
-      visibleSocials++;
     } else {
       socialInstagram.style.display = 'none';
     }
@@ -130,7 +163,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (student.githubUrl) {
       socialGithub.href = student.githubUrl;
       socialGithub.style.display = 'flex';
-      visibleSocials++;
     } else {
       socialGithub.style.display = 'none';
     }
@@ -138,7 +170,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (student.portfolioUrl) {
       socialPortfolio.href = student.portfolioUrl;
       socialPortfolio.style.display = 'flex';
-      visibleSocials++;
     } else {
       socialPortfolio.style.display = 'none';
     }
@@ -151,7 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Switch views
     loadingView.style.display = 'none';
-    profileView.style.display = 'flex';
+    profileView.style.display = 'block';
   }
 
   // 4. Client-side QR Code builder
@@ -160,18 +191,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     qrContainer.innerHTML = ''; // clear
 
     try {
-      // Initialize QRCode library helper (loaded globally via CDN in HTML)
       new QRCode(qrContainer, {
         text: window.location.href,
         width: 120,
         height: 120,
-        colorDark: "#0b0f19",
+        colorDark: "#004687",
         colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
       });
     } catch (e) {
       console.error("QR Code library generation error: ", e);
-      // Fallback: Google Chart API as backup in case library fails
       const encodedUrl = encodeURIComponent(window.location.href);
       qrContainer.innerHTML = `<img src="https://chart.googleapis.com/chart?cht=qr&chs=120x120&chl=${encodedUrl}" alt="QR code" style="width:100%">`;
     }
@@ -183,7 +212,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     downloadQrBtn.addEventListener('click', () => {
       try {
         const qrContainer = document.getElementById('qrcode');
-        // QRCode.js creates a canvas and an image
         const canvas = qrContainer.querySelector('canvas');
         const img = qrContainer.querySelector('img');
         
@@ -220,7 +248,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           console.log("Sharing cancelled", err);
         });
       } else {
-        // Fallback: Copy link
         navigator.clipboard.writeText(window.location.href).then(() => {
           toast.show("Profile link copied to clipboard for sharing!", "success");
         }).catch(err => {
@@ -232,7 +259,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Download contact card (.vcf)
     downloadVcardBtn.addEventListener('click', () => {
       try {
-        // Build clean vCard string format
         const vcardLines = [
           "BEGIN:VCARD",
           "VERSION:3.0",
@@ -242,7 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           `TITLE:${student.department}`,
           `TEL;TYPE=CELL:${student.phoneNumber}`,
           `EMAIL;TYPE=PREF,INTERNET:${student.email}`,
-          `NOTE:${student.aboutMe}`,
+          `NOTE:${student.aboutMe || ''}`,
         ];
 
         if (student.linkedinUrl) vcardLines.push(`URL;TYPE=LinkedIn:${student.linkedinUrl}`);

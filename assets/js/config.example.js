@@ -8,3 +8,5 @@ export const firebaseConfig = {
   measurementId: "YOUR_FIREBASE_MEASUREMENT_ID"
 };
 
+export const IMAGEBB_API_KEY = "YOUR_IMAGEBB_API_KEY";
+
