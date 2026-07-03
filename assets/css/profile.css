@@ -32,6 +32,8 @@ body.profile-page-theme header.header {
   align-items: center;
   padding-bottom: 24px;
   background: transparent;
+  opacity: 0;
+  animation: fadeIn 0.8s ease-out forwards;
 }
 
 .header-college-logo {
@@ -50,6 +52,9 @@ body.profile-page-theme header.header {
   text-transform: uppercase;
   margin-bottom: 8px;
   margin-top: 10px;
+  opacity: 0;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.1s;
 }
 
 /* Huge Bold Student Name */
@@ -63,6 +68,9 @@ body.profile-page-theme header.header {
   margin-bottom: 30px;
   text-transform: uppercase;
   word-break: break-word;
+  opacity: 0;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.2s;
 }
 
 /* Two-column Profile Section */
@@ -71,26 +79,57 @@ body.profile-page-theme header.header {
   align-items: center;
   gap: 24px;
   margin-bottom: 35px;
+  opacity: 0;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: 0.3s;
 }
 
 .profile-photo-container {
+  position: relative;
   flex-shrink: 0;
-  width: 150px; /* Slightly larger image */
+  width: 150px;
   height: 185px;
   border-radius: 14px;
   overflow: hidden;
   box-shadow: 0 8px 24px rgba(15, 76, 129, 0.12);
-  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
+  opacity: 0;
+  animation: scaleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  animation-delay: 0.35s;
+}
+
+/* Reflection Shine effect on Hover */
+.profile-photo-container::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: left 0.75s ease;
 }
 
 .profile-photo-container:hover {
-  transform: scale(1.04);
+  transform: scale(1.05) translateY(-2px);
+  box-shadow: 0 15px 30px rgba(15, 76, 129, 0.22);
+}
+
+.profile-photo-container:hover::after {
+  left: 150%;
 }
 
 .photo-plain {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: filter 0.3s ease;
 }
 
 .avatar-plain {
@@ -137,9 +176,12 @@ body.profile-page-theme header.header {
   background-color: var(--border-color);
   width: 100%;
   margin: 25px 0 10px 0;
+  opacity: 0;
+  animation: fadeIn 1s ease-out forwards;
+  animation-delay: 0.45s;
 }
 
-/* Vertical Contacts list */
+/* Vertical Contacts list - sequential staggered load */
 .contact-section {
   display: flex;
   flex-direction: column;
@@ -154,14 +196,21 @@ body.profile-page-theme header.header {
   border-bottom: 1px solid var(--border-color);
   text-decoration: none;
   color: var(--text-dark);
-  transition: padding-left 0.2s ease;
+  transition: padding-left 0.25s ease, color 0.25s ease;
+  opacity: 0;
+  animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+.contact-item:nth-child(1) { animation-delay: 0.50s; }
+.contact-item:nth-child(2) { animation-delay: 0.58s; }
+.contact-item:nth-child(3) { animation-delay: 0.66s; }
+.contact-item:nth-child(4) { animation-delay: 0.74s; }
+.contact-item:nth-child(5) { animation-delay: 0.82s; }
+.contact-item:nth-child(6) { animation-delay: 0.90s; }
+.contact-item:nth-child(7) { animation-delay: 0.98s; }
 
 .contact-item:hover {
-  padding-left: 6px;
-}
-
-.contact-item:hover .contact-label {
+  padding-left: 8px;
   color: var(--primary-blue);
 }
 
@@ -178,12 +227,28 @@ body.profile-page-theme header.header {
   font-size: 18px;
   font-weight: bold;
   color: var(--text-dark);
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.contact-item:hover .contact-arrow {
+  transform: translate(3px, -3px);
+  color: var(--primary-blue);
 }
 
 /* Secondary sections (Bio, Skills) */
 .skills-section {
   margin-top: 35px;
   text-align: left;
+  opacity: 0;
+  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+#bio-section {
+  animation-delay: 1.05s;
+}
+
+#skills-section {
+  animation-delay: 1.15s;
 }
 
 .section-title {
@@ -216,6 +281,11 @@ body.profile-page-theme header.header {
   border-radius: 12px;
   padding: 18px;
   margin-top: 10px;
+  transition: box-shadow 0.3s ease;
+}
+
+.bio-text:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
 }
 
 .skills-list {
@@ -233,13 +303,14 @@ body.profile-page-theme header.header {
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
-  transition: all 0.2s ease;
+  transition: all 0.2s ease, transform 0.2s ease;
 }
 
 .skill-tag:hover {
   background: var(--primary-blue);
   color: white;
   border-color: var(--primary-blue);
+  transform: translateY(-1px);
 }
 
 /* Lightbox Popup Modal */
@@ -264,14 +335,7 @@ body.profile-page-theme header.header {
   max-width: 380px;
   border-radius: 16px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-  animation-name: zoom;
-  animation-duration: 0.3s;
-  animation-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-@keyframes zoom {
-  from { transform: scale(0.65); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  animation: zoom 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 .lightbox-close {
@@ -281,13 +345,14 @@ body.profile-page-theme header.header {
   color: #ffffff;
   font-size: 40px;
   font-weight: bold;
-  transition: color 0.2s ease;
+  transition: color 0.2s ease, transform 0.2s ease;
   cursor: pointer;
   user-select: none;
 }
 
 .lightbox-close:hover {
   color: #9ca3af;
+  transform: scale(1.1);
 }
 
 /* Footer style */
@@ -298,6 +363,9 @@ footer {
   font-size: 12px;
   color: var(--text-gray);
   border-top: 1px solid var(--border-color);
+  opacity: 0;
+  animation: fadeIn 1s ease-out forwards;
+  animation-delay: 1.25s;
 }
 
 /* Scroll indicator top */
@@ -315,10 +383,44 @@ footer {
   color: white;
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.2s ease;
   z-index: 99;
 }
 
 .scroll-indicator:hover {
   transform: translateY(-3px);
+  background-color: var(--button-hover);
+}
+
+/* KEYFRAMES FOR PREMIUM ANIMATIONS */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes zoom {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
