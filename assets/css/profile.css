@@ -1,17 +1,17 @@
 /* Light Premium Executive Student Profile Style */
 
 :root {
-  --primary-blue: #0f4c81; /* Cobalt Executive Blue */
+  --primary-blue: #A50034; /* Deep Wine Crimson Red */
   --text-dark: #0a1128;    /* Dark Navy/Black */
   --text-gray: #4b5563;    /* Cool Gray */
   --text-light-gray: #9ca3af; /* Light Gray */
   --bg-light: #ffffff;     /* Plain White Background */
   --border-color: #f3f4f6; /* Soft Border Line */
-  --button-hover: #0a355a;
+  --button-hover: #B22234; /* Muted Ruby Red hover state */
 }
 
 body.profile-page-theme {
-  background: #f0f4f8 !important; /* Soft backdrop for claymorphic card */
+  background: #faf6f6 !important; /* Soft backdrop for claymorphic card */
   color: var(--text-dark) !important;
   font-family: 'Inter', sans-serif;
   overflow-x: hidden;
