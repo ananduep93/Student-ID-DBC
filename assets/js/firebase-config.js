@@ -1,5 +1,10 @@
-// Directly import the real config — no lazy loading, no timing issues
+// Directly import from config.js — no lazy loading, no timing issues
 import { firebaseConfig as realConfig } from './config.js';
+
+// Dynamically import Firebase core and services statically from CDN
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 
 const PLACEHOLDER = "YOUR_FIREBASE_";
 
@@ -16,48 +21,27 @@ export const isFirebaseConfigured = () => {
   );
 };
 
-// Firebase instances (module-level singletons)
-let app = null;
-let db = null;
-let storage = null;
-let initPromise = null;
+// Global Firebase instances
+export let app = null;
+export let db = null;
+export let storage = null;
 
-export const initFirebase = async () => {
-  // Return cached promise if already initializing/initialized
-  if (initPromise) return initPromise;
-
-  initPromise = (async () => {
-    if (!isFirebaseConfigured()) {
-      console.log("Firebase credentials are not set. Running in MOCK mode (localStorage).");
-      return { db: null, storage: null };
+if (isFirebaseConfigured()) {
+  try {
+    // Avoid duplicate app initialization
+    if (getApps().length === 0) {
+      app = initializeApp(firebaseConfig);
+    } else {
+      app = getApps()[0];
     }
-
-    try {
-      const { initializeApp, getApps } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
-      const { getFirestore } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-
-      // Avoid duplicate app initialization
-      if (getApps().length === 0) {
-        app = initializeApp(firebaseConfig);
-      } else {
-        app = getApps()[0];
-      }
-
-      db = getFirestore(app);
-      console.log("Firebase Firestore initialized successfully!");
-      return { db, storage: null };
-    } catch (error) {
-      console.error("Failed to initialize Firebase:", error);
-      initPromise = null; // reset so it can retry
-      return { db: null, storage: null };
-    }
-  })();
-
-  return initPromise;
-};
-
-// Getter functions so api.js always reads the current initialized instance
-export const getDb = () => db;
-export const getStorage = () => storage;
+    db = getFirestore(app);
+    storage = getStorage(app);
+    console.log("Firebase statically initialized successfully (Firestore + Storage)!");
+  } catch (error) {
+    console.error("Firebase static initialization failed:", error);
+  }
+} else {
+  console.log("Firebase credentials are not set. The application is running in MOCK mode.");
+}
 
 export default firebaseConfig;
