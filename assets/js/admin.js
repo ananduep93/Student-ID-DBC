@@ -5,7 +5,7 @@ import { IMAGEBB_API_KEY } from './config.js';
 document.addEventListener('DOMContentLoaded', () => {
   // Session Keys
   const AUTH_KEY = 'admin_session_auth';
-  const ADMIN_PASS = '';
+  const ADMIN_PASS = 'nothing';
 
   // State
   let studentsData = [];
