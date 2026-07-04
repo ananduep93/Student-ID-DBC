@@ -1,4 +1,4 @@
-/* Student ID QR Card Style */
+/* Student ID Card Front & Back Styles */
 
 body.qr-page-theme {
   background: #faf6f6 !important; /* Soft warm backdrop */
@@ -9,12 +9,12 @@ body.qr-page-theme {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 40px 20px;
 }
 
 .qr-container {
-  max-width: 450px;
+  max-width: 850px;
   width: 100%;
-  padding: 24px 20px;
 }
 
 .qr-wrapper {
@@ -22,99 +22,129 @@ body.qr-page-theme {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 400px;
+  width: 100%;
 }
 
-/* Card Styling (Claymorphic) */
-.qr-card {
+/* Wrapper for the cards (horizontal layout) */
+.id-cards-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
   width: 100%;
-  background: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.85);
-  border-radius: 32px;
-  box-shadow: 16px 16px 36px rgba(165, 0, 52, 0.05), 
-              -12px -12px 28px rgba(255, 255, 255, 0.95), 
-              inset -6px -6px 12px rgba(165, 0, 52, 0.02), 
-              inset 6px 6px 12px rgba(255, 255, 255, 0.85);
-  padding: 32px 28px;
+  margin-bottom: 35px;
+}
+
+/* Base Card Styles - CR80 ID Card dimensions scaled (330px * 530px) */
+.id-card {
+  width: 330px;
+  height: 530px;
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 16px 36px rgba(15, 23, 42, 0.15);
+  background-color: #ffffff;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.card-bg-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.card-bg-layer svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.card-content {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  justify-content: space-between;
+  box-sizing: border-box;
 }
 
-.qr-card-header {
+/* ==========================================
+   FRONT SIDE DESIGN
+   ========================================== */
+
+/* College Logo & Header */
+.front-header {
+  padding-top: 30px;
+  padding-left: 24px;
+  padding-right: 24px;
+  width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  border-bottom: 2px dashed rgba(165, 0, 52, 0.08);
-  padding-bottom: 20px;
-  width: 100%;
-  margin-bottom: 24px;
+  gap: 10px;
+  box-sizing: border-box;
 }
 
-.qr-college-logo {
-  height: 48px;
-  width: auto;
-  object-fit: contain;
-}
-
-.college-title {
+.front-header .college-title {
   text-align: left;
 }
 
-.college-title h2 {
+.front-header .college-title h2 {
   font-family: 'Outfit', sans-serif;
-  font-size: 16px;
-  font-weight: 800;
-  color: #A50034;
+  font-size: 15px;
+  font-weight: 900;
+  color: #0c2340;
+  margin: 0;
+  letter-spacing: -0.2px;
+}
+
+.front-header .college-title p {
+  font-size: 9px;
+  font-weight: 700;
+  color: #64748b;
   margin: 0;
   letter-spacing: 0.5px;
 }
 
-.college-title p {
-  font-size: 11px;
-  font-weight: 600;
-  color: #64748b;
-  margin: 0;
-  letter-spacing: 1px;
-}
-
-/* Student Bio Profile */
-.qr-student-profile {
+/* Photo Container (Centered Dark Blue frame) */
+.photo-container-wrapper {
   display: flex;
-  flex-direction: column;
+  justify-content: center;
   align-items: center;
-  margin-bottom: 24px;
+  margin-top: 15px;
+  width: 100%;
 }
 
-.qr-photo-container {
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
+.photo-container-box {
+  width: 165px;
+  height: 200px;
+  background-color: #0c2340; /* Dark navy frame */
+  border-radius: 24px;
   overflow: hidden;
-  background: #ffffff;
+  box-shadow: 0 10px 24px rgba(12, 35, 64, 0.25);
   border: 4px solid #ffffff;
-  box-shadow: 6px 6px 14px rgba(165, 0, 52, 0.08), 
-              -6px -6px 10px rgba(255, 255, 255, 0.9), 
-              inset -3px -3px 6px rgba(165, 0, 52, 0.03), 
-              inset 3px 3px 6px rgba(255, 255, 255, 0.85);
-  margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 
-.qr-photo-container img {
+.photo-container-box img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.avatar-placeholder {
+.photo-container-box .avatar-placeholder {
   font-family: 'Outfit', sans-serif;
-  font-size: 2.25rem;
+  font-size: 4rem;
   font-weight: 800;
   color: #ffffff;
   background: #A50034;
@@ -125,75 +155,150 @@ body.qr-page-theme {
   justify-content: center;
 }
 
-#student-name {
+/* Details Section (Front bottom) */
+.student-details-front {
+  text-align: center;
+  padding: 0 20px;
+  margin-top: 15px;
+  margin-bottom: 25px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.student-details-front h1 {
   font-family: 'Outfit', sans-serif;
-  font-size: 24px;
+  font-size: 19px;
   font-weight: 800;
-  color: #0f172a;
-  margin: 0 0 6px 0;
-  line-height: 1.2;
+  color: #ffffff; /* White text on blue background */
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1.1;
+  word-break: break-word;
+  max-width: 290px;
 }
 
-#student-dept {
-  font-size: 12px;
+.student-details-front p {
+  font-family: 'Outfit', sans-serif;
+  font-size: 11.5px;
   font-weight: 700;
-  color: #A50034;
-  background: rgba(165, 0, 52, 0.05);
-  padding: 6px 14px;
-  border-radius: 20px;
-  display: inline-block;
+  color: #ffffff;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0.95;
+}
+
+.student-details-front p.batch-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 4px 14px;
+  border-radius: 12px;
   margin: 0;
-  max-width: 320px;
-  word-wrap: break-word;
+  letter-spacing: 0.8px;
 }
 
-/* Styled QR Box Container */
-.qr-code-box-wrapper {
+.front-footer {
+  text-align: center;
+  padding-bottom: 12px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.front-footer p {
+  font-family: 'Outfit', sans-serif;
+  font-size: 8px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* ==========================================
+   BACK SIDE DESIGN
+   ========================================== */
+
+.back-logo-wrapper {
+  margin-top: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+/* Monogram Logo */
+.back-logo-svg {
+  width: auto;
+  height: 120px;
+}
+
+/* Centered QR Box for ID card back */
+.qr-code-box-wrapper-id {
   background: #ffffff;
-  border: 1.5px solid rgba(165, 0, 52, 0.04);
-  border-radius: 24px;
-  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.02), 
-              inset -3px -3px 6px rgba(255, 255, 255, 0.95);
-  padding: 20px;
-  margin-bottom: 12px;
+  border-radius: 16px;
+  padding: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.3s ease;
+  box-shadow: 0 8px 24px rgba(12, 35, 64, 0.15);
+  margin: 20px auto;
+  width: 160px;
+  height: 160px;
+  box-sizing: border-box;
 }
 
-.qr-code-box-wrapper:hover {
-  transform: scale(1.02);
-}
-
-.qr-code-element {
+.qr-code-element-id {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
-.qr-code-element canvas, .qr-code-element img {
-  border-radius: 8px;
+.qr-code-element-id svg, .qr-code-element-id img {
+  width: 136px !important;
+  height: 136px !important;
+  display: block;
 }
 
-.scan-instructions {
-  font-size: 12px;
-  font-weight: 600;
-  color: #64748b;
-  margin: 0 0 28px 0;
-  letter-spacing: 0.2px;
+/* Bottom elements back decoration */
+.back-footer-decorations {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-/* Actions */
+.triangles-decor {
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  letter-spacing: 6px;
+  color: #0c2340;
+  font-weight: 900;
+  margin: 0;
+}
+
+/* Action panel layout */
+.action-panel {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
 .qr-actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   width: 100%;
-  margin-bottom: 20px;
-}
-
-.qr-actions button {
-  flex: 1;
 }
 
 .back-link {
@@ -211,7 +316,7 @@ body.qr-page-theme {
   color: #A50034;
 }
 
-/* Loading / Error Placholder Styling */
+/* Loading & Placeholder Layouts */
 .qr-placeholder-state, .qr-error-card {
   background: #ffffff;
   border-radius: 32px;
@@ -219,6 +324,7 @@ body.qr-page-theme {
               -10px -10px 24px rgba(255, 255, 255, 0.9);
   padding: 40px;
   width: 100%;
+  max-width: 450px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -234,10 +340,14 @@ body.qr-page-theme {
   color: #0f172a;
 }
 
-/* Print View Specific overrides */
+/* ==========================================
+   PRINT STYLES (A4 Layout)
+   ========================================== */
 @media print {
   body {
     background: #ffffff !important;
+    padding: 0;
+    margin: 0;
   }
   .qr-page-theme {
     background: #ffffff !important;
@@ -248,24 +358,22 @@ body.qr-page-theme {
     width: 100%;
     padding: 0;
   }
-  .qr-card {
-    border: none;
+  .qr-wrapper {
+    min-height: auto;
+  }
+  .id-cards-wrapper {
+    gap: 40px;
+    padding: 40px;
+    justify-content: center;
+    page-break-inside: avoid;
+  }
+  .id-card {
     box-shadow: none !important;
-    padding: 0;
+    border: 1px solid #e2e8f0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-  .qr-actions, .back-link {
+  .action-panel {
     display: none !important;
-  }
-}
-
-/* Keyframes */
-@keyframes popIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
   }
 }
