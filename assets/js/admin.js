@@ -48,6 +48,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const editBio = document.getElementById('edit-bio');
   const editBlood = document.getElementById('edit-blood');
   const editAddress = document.getElementById('edit-address');
+  const editPhotoFile = document.getElementById('edit-photo-file');
+  const editPhotoUrl = document.getElementById('edit-photo-url');
+  const editPhotoPreview = document.getElementById('edit-photo-preview');
+  const editPhotoPlaceholder = document.getElementById('edit-photo-placeholder');
+  const editLinkedin = document.getElementById('edit-linkedin');
+  const editInstagram = document.getElementById('edit-instagram');
+  const editGithub = document.getElementById('edit-github');
+  const editPortfolio = document.getElementById('edit-portfolio');
+  const editSkills = document.getElementById('edit-skills');
 
   // 1. Initial Authentication Check
   if (sessionStorage.getItem(AUTH_KEY) === 'true') {
@@ -336,6 +345,36 @@ document.addEventListener('DOMContentLoaded', () => {
     editBio.value = student.aboutMe || "";
     editBlood.value = student.bloodGroup || "";
     editAddress.value = student.address || "";
+    editLinkedin.value = student.linkedinUrl || "";
+    editInstagram.value = student.instagramUrl || "";
+    editGithub.value = student.githubUrl || "";
+    editPortfolio.value = student.portfolioUrl || "";
+    
+    // Parse skills array
+    let skillsString = "";
+    if (student.skills) {
+      try {
+        const parsed = typeof student.skills === 'string' ? JSON.parse(student.skills) : student.skills;
+        if (Array.isArray(parsed)) {
+          skillsString = parsed.join(', ');
+        }
+      } catch (e) {
+        skillsString = student.skills.toString();
+      }
+    }
+    editSkills.value = skillsString;
+    
+    editPhotoFile.value = "";
+    editPhotoUrl.value = student.photoUrl || "";
+    
+    if (student.photoUrl) {
+      editPhotoPreview.src = student.photoUrl;
+      editPhotoPreview.style.display = "block";
+      editPhotoPlaceholder.style.display = "none";
+    } else {
+      editPhotoPreview.style.display = "none";
+      editPhotoPlaceholder.style.display = "flex";
+    }
     
     editModal.classList.add('active');
   }
@@ -347,6 +386,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   editModalClose.addEventListener('click', closeEditModal);
   editCancelBtn.addEventListener('click', closeEditModal);
+
+  editPhotoFile.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        editPhotoPreview.src = event.target.result;
+        editPhotoPreview.style.display = 'block';
+        editPhotoPlaceholder.style.display = 'none';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
   
   editModal.addEventListener('click', (e) => {
     if (e.target === editModal) {
@@ -359,6 +411,12 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const id = editId.value;
     
+    // Split and map comma-separated skills
+    const skillsArray = editSkills.value
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean);
+
     const updatedFields = {
       fullName: editName.value.trim(),
       department: editDept.value,
@@ -366,11 +424,48 @@ document.addEventListener('DOMContentLoaded', () => {
       email: editEmail.value.trim(),
       aboutMe: editBio.value.trim(),
       bloodGroup: editBlood.value,
-      address: editAddress.value.trim()
+      address: editAddress.value.trim(),
+      photoUrl: editPhotoUrl.value.trim(),
+      linkedinUrl: editLinkedin.value.trim(),
+      instagramUrl: editInstagram.value.trim(),
+      githubUrl: editGithub.value.trim(),
+      portfolioUrl: editPortfolio.value.trim(),
+      skills: skillsArray
     };
 
     loadingOverlay.classList.add('active');
+    const loadingText = document.getElementById('loading-text');
+    
     try {
+      // Check if a new file is chosen for upload
+      const file = editPhotoFile.files[0];
+      if (file) {
+        if (loadingText) {
+          loadingText.textContent = "Uploading new photo to ImgBB...";
+        }
+        
+        const formData = new FormData();
+        formData.append("image", file);
+        
+        // Timeout set to 60 seconds (60000ms) to prevent timeout failures on slow connections
+        const response = await Promise.race([
+          fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
+            method: "POST",
+            body: formData
+          }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error("ImgBB upload timed out.")), 60000))
+        ]);
+
+        const result = await response.json();
+        if (!result.success) {
+          throw new Error(result.error?.message || "Failed to upload to ImgBB.");
+        }
+        updatedFields.photoUrl = result.data.url;
+      }
+
+      if (loadingText) {
+        loadingText.textContent = "Saving changes to student profile...";
+      }
       await updateStudentProfile(id, updatedFields);
       closeEditModal();
       toast.show("Student details updated successfully.", "success");
@@ -379,6 +474,9 @@ document.addEventListener('DOMContentLoaded', () => {
       toast.show("Update failed: " + err.message, "error");
     } finally {
       loadingOverlay.classList.remove('active');
+      if (loadingText) {
+        loadingText.textContent = "Processing details...";
+      }
     }
   });
 
@@ -490,7 +588,7 @@ document.addEventListener('DOMContentLoaded', () => {
           method: "POST",
           body: formData
         }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("ImgBB upload timed out.")), 25000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error("ImgBB upload timed out.")), 60000))
       ]);
 
       const result = await response.json();
