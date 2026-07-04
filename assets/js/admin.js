@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="student-cell">
             ${avatarHTML}
             <div class="student-info-mini">
-              <span class="student-name-mini">${student.fullName}</span>
+              <a href="./qr.html?id=${student.id}" class="student-name-link" title="View Student QR Code">${student.fullName}</a>
               <span class="student-reg-mini">Submitted: ${formattedDate}</span>
             </div>
           </div>

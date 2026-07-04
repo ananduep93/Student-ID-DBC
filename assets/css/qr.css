@@ -1,0 +1,271 @@
+/* Student ID QR Card Style */
+
+body.qr-page-theme {
+  background: #faf6f6 !important; /* Soft warm backdrop */
+  color: #0f172a !important;
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-container {
+  max-width: 450px;
+  width: 100%;
+  padding: 24px 20px;
+}
+
+.qr-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+/* Card Styling (Claymorphic) */
+.qr-card {
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 32px;
+  box-shadow: 16px 16px 36px rgba(165, 0, 52, 0.05), 
+              -12px -12px 28px rgba(255, 255, 255, 0.95), 
+              inset -6px -6px 12px rgba(165, 0, 52, 0.02), 
+              inset 6px 6px 12px rgba(255, 255, 255, 0.85);
+  padding: 32px 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.qr-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-bottom: 2px dashed rgba(165, 0, 52, 0.08);
+  padding-bottom: 20px;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.qr-college-logo {
+  height: 48px;
+  width: auto;
+  object-fit: contain;
+}
+
+.college-title {
+  text-align: left;
+}
+
+.college-title h2 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 16px;
+  font-weight: 800;
+  color: #A50034;
+  margin: 0;
+  letter-spacing: 0.5px;
+}
+
+.college-title p {
+  font-size: 11px;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+/* Student Bio Profile */
+.qr-student-profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.qr-photo-container {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #ffffff;
+  border: 4px solid #ffffff;
+  box-shadow: 6px 6px 14px rgba(165, 0, 52, 0.08), 
+              -6px -6px 10px rgba(255, 255, 255, 0.9), 
+              inset -3px -3px 6px rgba(165, 0, 52, 0.03), 
+              inset 3px 3px 6px rgba(255, 255, 255, 0.85);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-photo-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  font-family: 'Outfit', sans-serif;
+  font-size: 2.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  background: #A50034;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#student-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  line-height: 1.2;
+}
+
+#student-dept {
+  font-size: 12px;
+  font-weight: 700;
+  color: #A50034;
+  background: rgba(165, 0, 52, 0.05);
+  padding: 6px 14px;
+  border-radius: 20px;
+  display: inline-block;
+  margin: 0;
+  max-width: 320px;
+  word-wrap: break-word;
+}
+
+/* Styled QR Box Container */
+.qr-code-box-wrapper {
+  background: #ffffff;
+  border: 1.5px solid rgba(165, 0, 52, 0.04);
+  border-radius: 24px;
+  box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.02), 
+              inset -3px -3px 6px rgba(255, 255, 255, 0.95);
+  padding: 20px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.qr-code-box-wrapper:hover {
+  transform: scale(1.02);
+}
+
+.qr-code-element {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qr-code-element canvas, .qr-code-element img {
+  border-radius: 8px;
+}
+
+.scan-instructions {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  margin: 0 0 28px 0;
+  letter-spacing: 0.2px;
+}
+
+/* Actions */
+.qr-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.qr-actions button {
+  flex: 1;
+}
+
+.back-link {
+  font-family: 'Outfit', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  text-decoration: none;
+  transition: color 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+.back-link:hover {
+  color: #A50034;
+}
+
+/* Loading / Error Placholder Styling */
+.qr-placeholder-state, .qr-error-card {
+  background: #ffffff;
+  border-radius: 32px;
+  box-shadow: 12px 12px 28px rgba(165, 0, 52, 0.04), 
+              -10px -10px 24px rgba(255, 255, 255, 0.9);
+  padding: 40px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+}
+
+.loading-text {
+  font-family: 'Outfit', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Print View Specific overrides */
+@media print {
+  body {
+    background: #ffffff !important;
+  }
+  .qr-page-theme {
+    background: #ffffff !important;
+    display: block;
+  }
+  .qr-container {
+    max-width: 100%;
+    width: 100%;
+    padding: 0;
+  }
+  .qr-card {
+    border: none;
+    box-shadow: none !important;
+    padding: 0;
+  }
+  .qr-actions, .back-link {
+    display: none !important;
+  }
+}
+
+/* Keyframes */
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

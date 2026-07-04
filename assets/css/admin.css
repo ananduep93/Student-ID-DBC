@@ -279,9 +279,16 @@
   flex-direction: column;
 }
 
-.student-name-mini {
-  font-weight: 600;
+.student-name-link {
+  font-weight: 700;
   color: var(--text-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.student-name-link:hover {
+  color: var(--accent-primary);
+  text-decoration: underline;
 }
 
 .student-reg-mini {
