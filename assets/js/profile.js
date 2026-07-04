@@ -281,7 +281,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         newArrow.style.transform = 'rotate(0deg)';
       } else {
         content.classList.add('open');
-        content.style.maxHeight = content.scrollHeight + 'px';
+        content.style.maxHeight = (content.scrollHeight + 60) + 'px';
         newArrow.style.transform = 'rotate(180deg)';
       }
     });
