@@ -49,44 +49,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     // 4. Generate QR Code containing the student digital profile link
     const profileUrl = getProfileURL(studentId);
     
-    // Embed the student's own face photo or fallback to the college crest in the center of the QR!
-    const embeddedLogoUrl = (student.photoUrl && student.photoUrl.startsWith('http'))
-      ? student.photoUrl
-      : './assets/images/logo.png';
-
     const qrCode = new QRCodeStyling({
       width: 220,
       height: 220,
       type: "svg", // SVG gives extremely sharp printing and scaling
       data: profileUrl,
-      image: embeddedLogoUrl,
       dotsOptions: {
-        type: "extra-rounded", // Premium fluid dots style
-        gradient: {
-          type: "linear",
-          rotation: 45,
-          colorStops: [
-            { offset: 0, color: "#A50034" }, // Deep Crimson
-            { offset: 1, color: "#D50032" }  // Bright Red
-          ]
-        }
+        type: "square",
+        color: "#000000"
       },
       backgroundOptions: {
         color: "#ffffff",
       },
-      imageOptions: {
-        crossOrigin: "anonymous",
-        hideBackgroundDots: true,
-        imageSize: 0.3,
-        margin: 5
-      },
       cornersSquareOptions: {
-        type: "extra-rounded",
-        color: "#A50034"
+        type: "square",
+        color: "#000000"
       },
       cornersDotOptions: {
-        type: "dot",
-        color: "#D50032"
+        type: "square",
+        color: "#000000"
       }
     });
 
