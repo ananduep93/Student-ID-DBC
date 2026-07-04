@@ -103,9 +103,8 @@ export const saveStudentProfile = async (profileData) => {
       console.log("Supabase: profile saved with ID:", uniqueId);
       return uniqueId;
     } catch (error) {
-      console.error("Supabase save error, falling back to localStorage:", error);
-      mockDB.addProfile(studentDoc);
-      return uniqueId;
+      console.error("Supabase save error:", error);
+      throw error;
     }
   } else {
     console.log("Supabase not configured. Saving to localStorage.");
@@ -134,8 +133,8 @@ export const getStudentProfile = async (id) => {
       const data = await res.json();
       return data.length > 0 ? data[0] : null;
     } catch (error) {
-      console.error("Supabase get error, falling back to localStorage:", error);
-      return mockDB.getProfile(id);
+      console.error("Supabase get error:", error);
+      throw error;
     }
   } else {
     return mockDB.getProfile(id);
@@ -161,8 +160,8 @@ export const getAllStudentProfiles = async () => {
       }
       return await res.json();
     } catch (error) {
-      console.error("Supabase getAll error, falling back to localStorage:", error);
-      return mockDB.getProfiles().sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
+      console.error("Supabase getAll error:", error);
+      throw error;
     }
   } else {
     return mockDB.getProfiles().sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
@@ -193,8 +192,8 @@ export const updateStudentProfile = async (id, updatedFields) => {
       }
       return true;
     } catch (error) {
-      console.error("Supabase update error, falling back to localStorage:", error);
-      return mockDB.updateProfile(id, updatedFields);
+      console.error("Supabase update error:", error);
+      throw error;
     }
   } else {
     return mockDB.updateProfile(id, updatedFields);
@@ -221,9 +220,8 @@ export const deleteStudentProfile = async (id) => {
       }
       return true;
     } catch (error) {
-      console.error("Supabase delete error, falling back to localStorage:", error);
-      mockDB.deleteProfile(id);
-      return true;
+      console.error("Supabase delete error:", error);
+      throw error;
     }
   } else {
     mockDB.deleteProfile(id);
