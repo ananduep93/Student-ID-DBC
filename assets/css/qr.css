@@ -362,17 +362,26 @@ body.qr-page-theme {
     min-height: auto;
   }
   .id-cards-wrapper {
-    gap: 40px;
-    padding: 40px;
-    justify-content: center;
-    page-break-inside: avoid;
+    display: block; /* Stack vertically for single-page printing flow */
+    padding: 0;
+    margin: 0;
   }
   .id-card {
     box-shadow: none !important;
     border: 1px solid #e2e8f0;
+    margin: 40px auto; /* Center on page with some margin */
+    page-break-inside: avoid;
+    break-inside: avoid;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+  
+  /* Force page break after front card to put back card on page 2 */
+  .id-card-front {
+    page-break-after: always;
+    break-after: page;
+  }
+  
   .action-panel {
     display: none !important;
   }
