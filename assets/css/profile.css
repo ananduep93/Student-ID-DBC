@@ -496,6 +496,11 @@ footer {
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid #f1f5f9;
+  transition: padding-bottom 0.3s ease;
+}
+
+.collapsible-wrapper:has(.collapsible-content.open) {
+  padding-bottom: 24px;
 }
 
 .collapsible-trigger {
@@ -528,7 +533,7 @@ footer {
 
 .collapsible-content.open {
   margin-top: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 0;
   border: 1px solid rgba(15, 76, 129, 0.04);
   padding: 12px 20px;
   box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.02), 
