@@ -92,14 +92,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // 7. Generate QR Code on the Back
     const profileUrl = getProfileURL(studentId);
-    new QRCode(qrContainer, {
-      text: profileUrl,
+    const qrCode = new QRCodeStyling({
       width: 140,
       height: 140,
-      colorDark: "#000000",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.H
+      type: "svg", // SVG gives sharp printing
+      data: profileUrl,
+      dotsOptions: {
+        type: "square",
+        color: "#000000"
+      },
+      backgroundOptions: {
+        color: "#ffffff",
+      },
+      cornersSquareOptions: {
+        type: "square",
+        color: "#000000"
+      },
+      cornersDotOptions: {
+        type: "square",
+        color: "#000000"
+      }
     });
+
+    qrCode.append(qrContainer);
 
     // 8. Display Card Wrapper & Action panel
     loadingView.style.display = 'none';
