@@ -1,6 +1,5 @@
 import toast from './toast.js';
-import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, getAdminPasswordHash, saveAdminLoginLog, getAdminLoginLogs } from './api.js';
-import { IMAGEBB_API_KEY } from './config.js';
+import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, getAdminPasswordHash, saveAdminLoginLog, getAdminLoginLogs, getImagebbApiKey } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Session Keys
@@ -722,9 +721,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
         formData.append("image", file);
         
+        const apiKey = await getImagebbApiKey();
+        if (!apiKey) {
+          throw new Error("ImgBB API key not configured in passwords table.");
+        }
+
         // Timeout set to 60 seconds (60000ms) to prevent timeout failures on slow connections
         const response = await Promise.race([
-          fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
+          fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
             method: "POST",
             body: formData
           }),
@@ -857,9 +861,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const formData = new FormData();
       formData.append("image", file);
 
+      const apiKey = await getImagebbApiKey();
+      if (!apiKey) {
+        throw new Error("ImgBB API key not configured in passwords table.");
+      }
+
       // Perform POST fetch to ImgBB
       const response = await Promise.race([
-        fetch(`https://api.imgbb.com/1/upload?key=${IMAGEBB_API_KEY}`, {
+        fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
           method: "POST",
           body: formData
         }),

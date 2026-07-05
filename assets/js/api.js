@@ -331,6 +331,38 @@ export const getAdminLoginLogs = async () => {
   }
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// 9. Get ImageBB API Key → Supabase passwords table
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const getImagebbApiKey = async () => {
+  if (isSupabaseConfigured()) {
+    try {
+      const res = await withTimeout(
+        fetch(`${SUPABASE_URL}/rest/v1/passwords?id=eq.imagebb_api_key&select=*`, {
+          headers: getSupabaseHeaders()
+        }),
+        10000,
+        "Supabase fetch api key timed out."
+      );
+      if (res.status === 404) {
+        console.warn("passwords table not found in Supabase (404) for imagebb_api_key.");
+        return null;
+      }
+      if (!res.ok) {
+        throw new Error(`Supabase fetch failed: ${res.status}`);
+      }
+      const data = await res.json();
+      return data.length > 0 ? data[0].password : null;
+    } catch (error) {
+      console.error("Supabase get API key error, using fallback:", error);
+      return null;
+    }
+  } else {
+    return null;
+  }
+};
+
 // Expose to window for debugging
 window.api = {
   saveStudentProfile,
@@ -340,5 +372,6 @@ window.api = {
   deleteStudentProfile,
   getAdminPasswordHash,
   saveAdminLoginLog,
-  getAdminLoginLogs
+  getAdminLoginLogs,
+  getImagebbApiKey
 };
