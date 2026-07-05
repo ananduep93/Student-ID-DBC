@@ -57,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const editSkills = document.getElementById('edit-skills');
 
   // 1. Initial Authentication Check
-  if (sessionStorage.getItem(AUTH_KEY) === 'true') {
+  if (localStorage.getItem(AUTH_KEY) === 'true') {
     showDashboard();
   } else {
     showLogin();
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
           toast.show("Warning: Logged in (Database logging failed: 401).", "warning");
         }
 
-        sessionStorage.setItem(AUTH_KEY, 'true');
+        localStorage.setItem(AUTH_KEY, 'true');
         toast.show("Verification successful. Access granted.", "success");
         passwordInput.value = '';
         showDashboard();
@@ -333,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Logout handler
   logoutBtn.addEventListener('click', () => {
-    sessionStorage.removeItem(AUTH_KEY);
+    localStorage.removeItem(AUTH_KEY);
     showLogin();
     toast.show("Logged out of session.", "info");
   });
