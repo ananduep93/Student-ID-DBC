@@ -88,18 +88,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadingOverlay.classList.add('active');
     try {
       const keys = await getAdminKeys();
-      const storedAdminKey = (keys && keys.admin_password) || "nothing";
-      const storedMonitorKey = (keys && keys.monitor_key) || "3a";
+      const storedAdminKey = (keys && keys.admin_password) || "1785cfc3bc6ac7738e8b38cdccd1af12563c2b9070e07af336a1bf8c0f772b6a";
+      const storedMonitorKey = (keys && keys.monitor_key) || "f2cd852e505f1084fe70fea3c0f4d577df89414bd356f43c7ae3a29e9e628553";
 
       const enteredHash = await sha256(enteredPassword);
       
       const isMonitor = enteredPassword === storedMonitorKey || 
-                        enteredPassword === "3a" ||
                         (enteredHash && enteredHash === storedMonitorKey) || 
                         (enteredHash && enteredHash === "f2cd852e505f1084fe70fea3c0f4d577df89414bd356f43c7ae3a29e9e628553");
 
       const isAdmin = enteredPassword === storedAdminKey || 
-                      enteredPassword === "nothing" ||
                       (enteredHash && enteredHash === storedAdminKey) || 
                       (enteredHash && enteredHash === "1785cfc3bc6ac7738e8b38cdccd1af12563c2b9070e07af336a1bf8c0f772b6a");
 
