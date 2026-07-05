@@ -1,5 +1,5 @@
 import toast from './toast.js';
-import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, getAdminPasswordHash, saveAdminLoginLog, getAdminLoginLogs, getImagebbApiKey } from './api.js';
+import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, getAdminKeys, saveAdminLoginLog, getAdminLoginLogs, getImagebbApiKey } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Session Keys
@@ -76,60 +76,62 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
     const enteredPassword = passwordInput.value.trim();
     
-    if (enteredPassword === '3a') {
-      loadingOverlay.classList.add('active');
-      try {
-        const logins = await getAdminLoginLogs();
-        // Sort newest logins first
-        logins.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        showAdminLoginsModal(logins);
-      } catch (err) {
-        console.error(err);
-        toast.show("Error checking active logins: " + err.message, "error");
-      } finally {
-        loadingOverlay.classList.remove('active');
-        passwordInput.value = '';
-      }
-    } else {
-      loadingOverlay.classList.add('active');
-      try {
-        // Fetch hashed password from Supabase passwords table
-        const fetchedHash = await getAdminPasswordHash();
-        // Fallback hash is for 'nothing'
-        const storedHash = fetchedHash || "1785cfc3bc6ac7738e8b38cdccd1af12563c2b9070e07af336a1bf8c0f772b6a";
-        
-        const enteredHash = await sha256(enteredPassword);
-        
-        if (enteredHash === storedHash) {
-          let adminName = prompt("Please enter your name for the login audit log:");
-          if (adminName === null) {
-            // User clicked cancel
-            passwordInput.value = '';
-            return;
-          }
-          adminName = adminName.trim();
-          if (adminName === "") {
-            adminName = "Anonymous Admin";
-          }
+    loadingOverlay.classList.add('active');
+    try {
+      const keys = await getAdminKeys();
+      const storedAdminHash = (keys && keys.admin_password) || "1785cfc3bc6ac7738e8b38cdccd1af12563c2b9070e07af336a1bf8c0f772b6a";
+      const storedMonitorHash = (keys && keys.monitor_key) || "f2cd852e505f1084fe70fea3c0f4d577df89414bd356f43c7ae3a29e9e628553";
 
-          const deviceFriendly = parseUserAgent(navigator.userAgent);
-          await saveAdminLoginLog(adminName, deviceFriendly);
-
-          sessionStorage.setItem(AUTH_KEY, 'true');
-          toast.show("Verification successful. Access granted.", "success");
+      const enteredHash = await sha256(enteredPassword);
+      
+      if (enteredHash === storedMonitorHash) {
+        try {
+          const logins = await getAdminLoginLogs();
+          // Sort newest logins first
+          logins.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+          showAdminLoginsModal(logins);
+        } catch (err) {
+          console.error(err);
+          toast.show("Error checking active logins: " + err.message, "error");
+        } finally {
+          loadingOverlay.classList.remove('active');
           passwordInput.value = '';
-          showDashboard();
-        } else {
-          toast.show("Access Denied. Incorrect admin password.", "error");
-          passwordInput.focus();
-          passwordInput.select();
         }
-      } catch (err) {
-        console.error(err);
-        toast.show("Failed to verify password: " + err.message, "error");
-      } finally {
-        loadingOverlay.classList.remove('active');
+      } else if (enteredHash === storedAdminHash) {
+        let adminName = prompt("Please enter your name for the login audit log:");
+        if (adminName === null) {
+          // User clicked cancel
+          passwordInput.value = '';
+          loadingOverlay.classList.remove('active');
+          return;
+        }
+        adminName = adminName.trim();
+        if (adminName === "") {
+          adminName = "Anonymous Admin";
+        }
+
+        const deviceFriendly = parseUserAgent(navigator.userAgent);
+        try {
+          await saveAdminLoginLog(adminName, deviceFriendly);
+        } catch (logErr) {
+          console.warn("Failed to save admin login log to Supabase:", logErr);
+          toast.show("Warning: Logged in (Database logging failed: 401).", "warning");
+        }
+
+        sessionStorage.setItem(AUTH_KEY, 'true');
+        toast.show("Verification successful. Access granted.", "success");
+        passwordInput.value = '';
+        showDashboard();
+      } else {
+        toast.show("Access Denied. Incorrect admin password.", "error");
+        passwordInput.focus();
+        passwordInput.select();
       }
+    } catch (err) {
+      console.error(err);
+      toast.show("Failed to verify password: " + err.message, "error");
+    } finally {
+      loadingOverlay.classList.remove('active');
     }
   });
 

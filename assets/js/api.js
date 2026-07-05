@@ -230,30 +230,34 @@ export const deleteStudentProfile = async (id) => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// 6. Get Admin Password Hash → Supabase passwords table
+// 6. Get Admin Configuration Keys → Supabase passwords table
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const getAdminPasswordHash = async () => {
+export const getAdminKeys = async () => {
   if (isSupabaseConfigured()) {
     try {
       const res = await withTimeout(
-        fetch(`${SUPABASE_URL}/rest/v1/passwords?id=eq.admin_password&select=*`, {
+        fetch(`${SUPABASE_URL}/rest/v1/passwords?id=in.(admin_password,monitor_key)&select=*`, {
           headers: getSupabaseHeaders()
         }),
         10000,
-        "Supabase fetch password timed out."
+        "Supabase fetch keys timed out."
       );
       if (res.status === 404) {
-        console.warn("passwords table not found in Supabase (404). Falling back to default password.");
+        console.warn("passwords table not found in Supabase (404).");
         return null;
       }
       if (!res.ok) {
         throw new Error(`Supabase fetch failed: ${res.status}`);
       }
       const data = await res.json();
-      return data.length > 0 ? data[0].password : null;
+      const keys = {};
+      data.forEach(row => {
+        keys[row.id] = row.password;
+      });
+      return keys;
     } catch (error) {
-      console.error("Supabase get passwords error, using fallback:", error);
+      console.error("Supabase get admin keys error, using fallback:", error);
       return null;
     }
   } else {
@@ -370,7 +374,7 @@ window.api = {
   getAllStudentProfiles,
   updateStudentProfile,
   deleteStudentProfile,
-  getAdminPasswordHash,
+  getAdminKeys,
   saveAdminLoginLog,
   getAdminLoginLogs,
   getImagebbApiKey
