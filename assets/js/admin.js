@@ -1,5 +1,5 @@
 import toast from './toast.js';
-import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, saveStudentProfile, getStudentProfile } from './api.js';
+import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, saveStudentProfile, getAdminPasswordHash } from './api.js';
 import { IMAGEBB_API_KEY } from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -95,10 +95,10 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       loadingOverlay.classList.add('active');
       try {
-        // Fetch hashed password from Supabase
-        const hashRecord = await getStudentProfile('admin_config_password');
+        // Fetch hashed password from Supabase admin_settings table
+        const fetchedHash = await getAdminPasswordHash();
         // Fallback hash is for 'nothing'
-        const storedHash = hashRecord ? hashRecord.fullName : "1785cfc3bc6ac7738e8b38cdccd1af12563c2b9070e07af336a1bf8c0f772b6a";
+        const storedHash = fetchedHash || "1785cfc3bc6ac7738e8b38cdccd1af12563c2b9070e07af336a1bf8c0f772b6a";
         
         const enteredHash = await sha256(enteredPassword);
         

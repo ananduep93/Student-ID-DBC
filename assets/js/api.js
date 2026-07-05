@@ -229,11 +229,40 @@ export const deleteStudentProfile = async (id) => {
   }
 };
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// 6. Get Admin Password Hash → Supabase admin_settings table
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const getAdminPasswordHash = async () => {
+  if (isSupabaseConfigured()) {
+    try {
+      const res = await withTimeout(
+        fetch(`${SUPABASE_URL}/rest/v1/admin_settings?key=eq.admin_password&select=*`, {
+          headers: getSupabaseHeaders()
+        }),
+        10000,
+        "Supabase fetch password timed out."
+      );
+      if (!res.ok) {
+        throw new Error(`Supabase fetch failed: ${res.status}`);
+      }
+      const data = await res.json();
+      return data.length > 0 ? data[0].value : null;
+    } catch (error) {
+      console.error("Supabase get settings error:", error);
+      throw error;
+    }
+  } else {
+    return null;
+  }
+};
+
 // Expose to window for debugging
 window.api = {
   saveStudentProfile,
   getStudentProfile,
   getAllStudentProfiles,
   updateStudentProfile,
-  deleteStudentProfile
+  deleteStudentProfile,
+  getAdminPasswordHash
 };
