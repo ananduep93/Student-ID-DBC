@@ -262,6 +262,68 @@
     </div>
   </div>
 
+  <!-- Photo Source Selector & Camera Modal -->
+  <div id="photo-source-modal" class="modal-backdrop" aria-hidden="true" role="dialog">
+    <div class="glass-card admin-modal" style="max-width: 480px;">
+      <div class="modal-header">
+        <h2 id="photo-modal-title">Select Photo Source</h2>
+        <button id="photo-modal-close" class="modal-close" aria-label="Close modal">&times;</button>
+      </div>
+      
+      <!-- Screen 1: Choose Source -->
+      <div id="photo-screen-select" class="modal-body-scroll" style="text-align: center; padding: 1rem 0;">
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Choose how you want to upload the student's profile photo.</p>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <button type="button" id="source-camera-btn" class="btn btn-primary" style="justify-content: center; gap: 0.75rem; padding: 1rem; font-size: 1.05rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+            Take Photo (Use Camera)
+          </button>
+          <button type="button" id="source-file-btn" class="btn btn-secondary" style="justify-content: center; gap: 0.75rem; padding: 1rem; font-size: 1.05rem; background: rgba(99, 102, 241, 0.05); border: 1px solid var(--accent-primary); color: var(--accent-primary);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+            Choose File (File Explorer/Gallery)
+          </button>
+        </div>
+      </div>
+      
+      <!-- Screen 2: Active Camera View -->
+      <div id="photo-screen-camera" class="modal-body-scroll" style="display: none; align-items: center; flex-direction: column; gap: 1rem;">
+        <!-- Camera Selector -->
+        <div id="camera-selector-container" style="display: none; width: 100%;">
+          <label for="camera-device-select" style="font-size: 0.8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.25rem; display: block;">Select Camera:</label>
+          <select id="camera-device-select" class="glass-input" style="font-size: 0.85rem; padding: 0.5rem;"></select>
+        </div>
+
+        <div class="camera-preview-container">
+          <video id="camera-preview" autoplay playsinline></video>
+          <canvas id="camera-canvas" style="display: none;"></canvas>
+        </div>
+        
+        <p id="camera-status" style="font-size: 0.85rem; color: var(--text-muted); text-align: center;"></p>
+        
+        <div style="display: flex; gap: 1rem; width: 100%; justify-content: center; margin-top: 1rem;">
+          <button type="button" id="camera-capture-btn" class="btn btn-primary" style="flex: 1; justify-content: center; gap: 0.5rem;">
+            Capture Photo
+          </button>
+          <button type="button" id="camera-back-btn" class="btn btn-secondary" style="flex: 1; justify-content: center;">Back</button>
+        </div>
+      </div>
+
+      <!-- Screen 3: Captured Preview -->
+      <div id="photo-screen-captured" class="modal-body-scroll" style="display: none; align-items: center; flex-direction: column; gap: 1rem;">
+        <div class="camera-preview-container">
+          <img id="captured-preview-img" alt="Captured photo preview">
+        </div>
+        
+        <div style="display: flex; gap: 1rem; width: 100%; justify-content: center; margin-top: 1rem;">
+          <button type="button" id="captured-save-btn" class="btn btn-primary" style="flex: 1; justify-content: center; gap: 0.5rem;">
+            Use Photo
+          </button>
+          <button type="button" id="captured-retake-btn" class="btn btn-secondary" style="flex: 1; justify-content: center;">Retake</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Hidden input for Admin Photo Upload -->
   <input type="file" id="admin-photo-upload-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
 

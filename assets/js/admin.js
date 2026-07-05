@@ -384,19 +384,67 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function getDetailsScore(student) {
+    let score = 0;
+    
+    // Core fields
+    if (student.fullName && student.fullName.trim() !== '') score++;
+    if (student.department && student.department.trim() !== '') score++;
+    if (student.phoneNumber && student.phoneNumber.trim() !== '') score++;
+    if (student.email && student.email.trim() !== '') score++;
+    
+    // Additional/Social fields
+    if (student.aboutMe && student.aboutMe.trim() !== '') score++;
+    if (student.bloodGroup && student.bloodGroup.trim() !== '') score++;
+    if (student.address && student.address.trim() !== '') score++;
+    if (student.photoUrl && student.photoUrl.trim() !== '' && student.photoUrl.startsWith('http')) score++;
+    if (student.linkedinUrl && student.linkedinUrl.trim() !== '') score++;
+    if (student.instagramUrl && student.instagramUrl.trim() !== '') score++;
+    if (student.githubUrl && student.githubUrl.trim() !== '') score++;
+    if (student.portfolioUrl && student.portfolioUrl.trim() !== '') score++;
+    
+    // Skills
+    if (student.skills) {
+      if (Array.isArray(student.skills)) {
+        if (student.skills.length > 0) score++;
+      } else if (typeof student.skills === 'string') {
+        try {
+          const parsed = JSON.parse(student.skills);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            score++;
+          } else if (student.skills.trim() !== '' && student.skills.trim() !== '[]') {
+            score++;
+          }
+        } catch (e) {
+          if (student.skills.trim() !== '') {
+            score++;
+          }
+        }
+      }
+    }
+    
+    return score;
+  }
+
   function deduplicateStudents(data) {
     const uniqueMap = new Map();
     const duplicatesToDelete = [];
 
-    // Group duplicates, sorting by submission date descending so newer is first
-    const sorted = [...data].sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
+    // Group duplicates, sorting by details score descending, then by submission date descending
+    const sorted = [...data].sort((a, b) => {
+      const scoreA = getDetailsScore(a);
+      const scoreB = getDetailsScore(b);
+      if (scoreA !== scoreB) {
+        return scoreB - scoreA;
+      }
+      return new Date(b.submissionDate) - new Date(a.submissionDate);
+    });
 
     const cleanData = [];
 
     for (const student of sorted) {
       const nameKey = (student.fullName || "").trim().toLowerCase();
-      const deptKey = (student.department || "").trim().toLowerCase();
-      const uniqueKey = `${nameKey}|${deptKey}`;
+      const uniqueKey = nameKey;
 
       if (!uniqueMap.has(uniqueKey)) {
         uniqueMap.set(uniqueKey, student);
@@ -852,26 +900,35 @@ document.addEventListener('DOMContentLoaded', () => {
   // 5. Admin Photo Upload Feature
   const photoUploadInput = document.getElementById('admin-photo-upload-input');
   let activeStudentIdForUpload = null;
+  let activeStream = null;
 
-  // Track active student on click of upload-photo-btn
-  document.addEventListener('click', (e) => {
-    const uploadBtn = e.target.closest('.upload-photo-btn');
-    if (uploadBtn) {
-      activeStudentIdForUpload = uploadBtn.getAttribute('data-id');
-      photoUploadInput.click();
-    }
-  });
+  // Photo Source Selector & Camera Modal DOM elements
+  const photoSourceModal = document.getElementById('photo-source-modal');
+  const photoModalTitle = document.getElementById('photo-modal-title');
+  const photoModalClose = document.getElementById('photo-modal-close');
+  
+  const photoScreenSelect = document.getElementById('photo-screen-select');
+  const photoScreenCamera = document.getElementById('photo-screen-camera');
+  const photoScreenCaptured = document.getElementById('photo-screen-captured');
+  
+  const sourceCameraBtn = document.getElementById('source-camera-btn');
+  const sourceFileBtn = document.getElementById('source-file-btn');
+  
+  const cameraDeviceSelect = document.getElementById('camera-device-select');
+  const cameraSelectorContainer = document.getElementById('camera-selector-container');
+  const cameraPreview = document.getElementById('camera-preview');
+  const cameraCanvas = document.getElementById('camera-canvas');
+  const cameraStatus = document.getElementById('camera-status');
+  
+  const cameraCaptureBtn = document.getElementById('camera-capture-btn');
+  const cameraBackBtn = document.getElementById('camera-back-btn');
+  
+  const capturedPreviewImg = document.getElementById('captured-preview-img');
+  const capturedSaveBtn = document.getElementById('captured-save-btn');
+  const capturedRetakeBtn = document.getElementById('captured-retake-btn');
 
-  photoUploadInput.addEventListener('change', async (e) => {
-    if (!activeStudentIdForUpload || e.target.files.length === 0) return;
-
-    const file = e.target.files[0];
-    const studentId = activeStudentIdForUpload;
-    
-    // Reset file input and tracking variable
-    photoUploadInput.value = '';
-    activeStudentIdForUpload = null;
-
+  // Shared function to upload file to ImgBB and update student profile
+  async function uploadAndSavePhoto(file, studentId) {
     // Validate file type & size (5MB max)
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
@@ -917,7 +974,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const imageUrl = result.data.url;
 
-      // Update student profile document in Firestore
+      // Update student profile document
       if (loadingText) {
         loadingText.textContent = "Saving image link to student profile...";
       }
@@ -931,5 +988,179 @@ document.addEventListener('DOMContentLoaded', () => {
     } finally {
       loadingOverlay.classList.remove('active');
     }
+  }
+
+  // Track active student on click of upload-photo-btn and open chooser modal
+  document.addEventListener('click', (e) => {
+    const uploadBtn = e.target.closest('.upload-photo-btn');
+    if (uploadBtn) {
+      const studentId = uploadBtn.getAttribute('data-id');
+      openPhotoSourceModal(studentId);
+    }
+  });
+
+  // Handle file choice from Explorer/Gallery
+  photoUploadInput.addEventListener('change', async (e) => {
+    if (!activeStudentIdForUpload || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    const studentId = activeStudentIdForUpload;
+    
+    // Reset inputs
+    photoUploadInput.value = '';
+    activeStudentIdForUpload = null;
+    
+    await uploadAndSavePhoto(file, studentId);
+  });
+
+  // Modal display toggles
+  function openPhotoSourceModal(studentId) {
+    activeStudentIdForUpload = studentId;
+    photoScreenSelect.style.display = 'block';
+    photoScreenCamera.style.display = 'none';
+    photoScreenCaptured.style.display = 'none';
+    photoModalTitle.textContent = "Select Photo Source";
+    photoSourceModal.classList.add('active');
+  }
+
+  function closePhotoSourceModal() {
+    stopCameraStream();
+    photoSourceModal.classList.remove('active');
+    activeStudentIdForUpload = null;
+  }
+
+  function stopCameraStream() {
+    if (activeStream) {
+      activeStream.getTracks().forEach(track => track.stop());
+      activeStream = null;
+    }
+    cameraPreview.srcObject = null;
+  }
+
+  async function startCameraStream(deviceId = null) {
+    stopCameraStream();
+    cameraStatus.textContent = "Initializing camera...";
+    cameraStatus.style.color = "var(--text-secondary)";
+    
+    const constraints = {
+      video: {
+        width: { ideal: 640 },
+        height: { ideal: 480 },
+        facingMode: deviceId ? undefined : "user"
+      }
+    };
+    if (deviceId) {
+      constraints.video.deviceId = { exact: deviceId };
+    }
+    
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      activeStream = stream;
+      cameraPreview.srcObject = stream;
+      cameraStatus.textContent = "Camera is active. Frame the face nicely.";
+      await populateCameraDevices(deviceId);
+    } catch (err) {
+      console.error("Camera access failed:", err);
+      cameraStatus.textContent = "Error: Camera access denied or not available. Please ensure camera permissions are granted.";
+      cameraStatus.style.color = "var(--accent-pink)";
+    }
+  }
+
+  async function populateCameraDevices(currentDeviceId = null) {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoDevices = devices.filter(d => d.kind === 'videoinput');
+      
+      cameraDeviceSelect.innerHTML = '';
+      if (videoDevices.length > 1) {
+        videoDevices.forEach((device, idx) => {
+          const opt = document.createElement('option');
+          opt.value = device.deviceId;
+          opt.text = device.label || `Camera ${idx + 1}`;
+          if (currentDeviceId && device.deviceId === currentDeviceId) {
+            opt.selected = true;
+          }
+          cameraDeviceSelect.appendChild(opt);
+        });
+        cameraSelectorContainer.style.display = 'block';
+      } else {
+        cameraSelectorContainer.style.display = 'none';
+      }
+    } catch (e) {
+      console.warn("Could not enumerate camera devices:", e);
+    }
+  }
+
+  // Event Listeners for the Photo Source Modal
+  photoModalClose.addEventListener('click', closePhotoSourceModal);
+  photoSourceModal.addEventListener('click', (e) => {
+    if (e.target === photoSourceModal) {
+      closePhotoSourceModal();
+    }
+  });
+
+  sourceFileBtn.addEventListener('click', () => {
+    photoUploadInput.click();
+    photoSourceModal.classList.remove('active');
+  });
+
+  sourceCameraBtn.addEventListener('click', () => {
+    photoScreenSelect.style.display = 'none';
+    photoScreenCamera.style.display = 'flex';
+    photoModalTitle.textContent = "Capture Photo";
+    startCameraStream();
+  });
+
+  cameraBackBtn.addEventListener('click', () => {
+    stopCameraStream();
+    photoScreenCamera.style.display = 'none';
+    photoScreenSelect.style.display = 'block';
+    photoModalTitle.textContent = "Select Photo Source";
+  });
+
+  cameraDeviceSelect.addEventListener('change', () => {
+    const deviceId = cameraDeviceSelect.value;
+    startCameraStream(deviceId);
+  });
+
+  cameraCaptureBtn.addEventListener('click', () => {
+    if (!activeStream) return;
+    
+    const width = cameraPreview.videoWidth || 640;
+    const height = cameraPreview.videoHeight || 480;
+    cameraCanvas.width = width;
+    cameraCanvas.height = height;
+    
+    const ctx = cameraCanvas.getContext('2d');
+    ctx.drawImage(cameraPreview, 0, 0, width, height);
+    
+    const dataUrl = cameraCanvas.toDataURL('image/jpeg');
+    capturedPreviewImg.src = dataUrl;
+    
+    stopCameraStream();
+    
+    photoScreenCamera.style.display = 'none';
+    photoScreenCaptured.style.display = 'flex';
+    photoModalTitle.textContent = "Review Captured Photo";
+  });
+
+  capturedRetakeBtn.addEventListener('click', () => {
+    photoScreenCaptured.style.display = 'none';
+    photoScreenCamera.style.display = 'flex';
+    photoModalTitle.textContent = "Capture Photo";
+    const selectedDeviceId = cameraDeviceSelect.value || null;
+    startCameraStream(selectedDeviceId);
+  });
+
+  capturedSaveBtn.addEventListener('click', () => {
+    cameraCanvas.toBlob((blob) => {
+      if (blob) {
+        const file = new File([blob], `captured_photo_${Date.now()}.jpg`, { type: 'image/jpeg' });
+        const studentId = activeStudentIdForUpload;
+        closePhotoSourceModal();
+        uploadAndSavePhoto(file, studentId);
+      } else {
+        toast.show("Error capturing image blob.", "error");
+      }
+    }, 'image/jpeg', 0.9);
   });
 });
