@@ -243,14 +243,18 @@ export const getAdminPasswordHash = async () => {
         10000,
         "Supabase fetch password timed out."
       );
+      if (res.status === 404) {
+        console.warn("admin_settings table not found in Supabase (404). Falling back to default password.");
+        return null;
+      }
       if (!res.ok) {
         throw new Error(`Supabase fetch failed: ${res.status}`);
       }
       const data = await res.json();
       return data.length > 0 ? data[0].value : null;
     } catch (error) {
-      console.error("Supabase get settings error:", error);
-      throw error;
+      console.error("Supabase get settings error, using fallback:", error);
+      return null;
     }
   } else {
     return null;
