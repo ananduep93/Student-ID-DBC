@@ -355,7 +355,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 2. Fetch and render dashboard
   async function loadDashboardData() {
-    loadingOverlay.classList.add('active');
+    const cachedData = localStorage.getItem('student_profiles');
+    if (cachedData) {
+      try {
+        const rawData = JSON.parse(cachedData);
+        const studentOnlyData = rawData.filter(item => item.department !== 'ADMIN_LOG');
+        studentsData = deduplicateStudents(studentOnlyData);
+        updateStats();
+        applyFiltersAndSort();
+      } catch (e) {
+        console.warn("Error parsing student cache:", e);
+      }
+    } else {
+      loadingOverlay.classList.add('active');
+    }
+
     try {
       const rawData = await getAllStudentProfiles();
       const studentOnlyData = rawData.filter(item => item.department !== 'ADMIN_LOG');
@@ -364,7 +378,9 @@ document.addEventListener('DOMContentLoaded', () => {
       applyFiltersAndSort();
     } catch (err) {
       console.error(err);
-      toast.show("Error fetching student records: " + err.message, "error");
+      if (!cachedData) {
+        toast.show("Error fetching student records: " + err.message, "error");
+      }
     } finally {
       loadingOverlay.classList.remove('active');
     }

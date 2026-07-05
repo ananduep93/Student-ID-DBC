@@ -118,6 +118,35 @@ export const saveStudentProfile = async (profileData) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const getStudentProfile = async (id) => {
+  // First check if we have the student in the local cache
+  const cached = localStorage.getItem('student_profiles');
+  if (cached) {
+    try {
+      const data = JSON.parse(cached);
+      const student = Array.isArray(data) ? data.find(item => item.id === id) : null;
+      if (student) {
+        // Return instantly from local cache, revalidate in background
+        setTimeout(() => {
+          fetch(`${SUPABASE_URL}/rest/v1/students?id=eq.${id}&select=*`, {
+            headers: getSupabaseHeaders()
+          }).then(res => res.json()).then(newData => {
+            if (newData.length > 0) {
+              const currentData = JSON.parse(localStorage.getItem('student_profiles') || '[]');
+              const idx = currentData.findIndex(item => item.id === id);
+              if (idx !== -1) {
+                currentData[idx] = newData[0];
+                localStorage.setItem('student_profiles', JSON.stringify(currentData));
+              }
+            }
+          }).catch(err => console.warn("Background revalidation failed:", err));
+        }, 10);
+        return student;
+      }
+    } catch (e) {
+      console.warn("Error parsing cache:", e);
+    }
+  }
+
   if (isSupabaseConfigured()) {
     try {
       const res = await withTimeout(
@@ -158,9 +187,16 @@ export const getAllStudentProfiles = async () => {
       if (!res.ok) {
         throw new Error(`Supabase query failed: ${res.status}`);
       }
-      return await res.json();
+      const data = await res.json();
+      // Cache data in localStorage for fast subsequent loads
+      localStorage.setItem('student_profiles', JSON.stringify(data));
+      return data;
     } catch (error) {
-      console.error("Supabase getAll error:", error);
+      console.error("Supabase getAll error, falling back to local cache:", error);
+      const cached = localStorage.getItem('student_profiles');
+      if (cached) {
+        return JSON.parse(cached);
+      }
       throw error;
     }
   } else {
