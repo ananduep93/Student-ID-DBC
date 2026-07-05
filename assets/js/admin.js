@@ -1,5 +1,5 @@
 import toast from './toast.js';
-import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, saveStudentProfile, getAdminPasswordHash } from './api.js';
+import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, getAdminPasswordHash, saveAdminLoginLog, getAdminLoginLogs } from './api.js';
 import { IMAGEBB_API_KEY } from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -80,10 +80,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (enteredPassword === '3a') {
       loadingOverlay.classList.add('active');
       try {
-        const allStudents = await getAllStudentProfiles();
-        const logins = allStudents.filter(item => item.department === 'ADMIN_LOG');
+        const logins = await getAdminLoginLogs();
         // Sort newest logins first
-        logins.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
+        logins.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         showAdminLoginsModal(logins);
       } catch (err) {
         console.error(err);
@@ -95,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       loadingOverlay.classList.add('active');
       try {
-        // Fetch hashed password from Supabase admin_settings table
+        // Fetch hashed password from Supabase passwords table
         const fetchedHash = await getAdminPasswordHash();
         // Fallback hash is for 'nothing'
         const storedHash = fetchedHash || "1785cfc3bc6ac7738e8b38cdccd1af12563c2b9070e07af336a1bf8c0f772b6a";
@@ -114,19 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
             adminName = "Anonymous Admin";
           }
 
-          const logRecord = {
-            fullName: adminName,
-            college: "DON BOSCO COLLEGE",
-            department: "ADMIN_LOG",
-            phoneNumber: "",
-            email: "",
-            skills: [navigator.userAgent],
-            aboutMe: "",
-            photoUrl: "",
-            submissionDate: new Date().toISOString()
-          };
+          const deviceFriendly = parseUserAgent(navigator.userAgent);
+          await saveAdminLoginLog(adminName, deviceFriendly);
 
-          await saveStudentProfile(logRecord);
           sessionStorage.setItem(AUTH_KEY, 'true');
           toast.show("Verification successful. Access granted.", "success");
           passwordInput.value = '';
@@ -170,6 +159,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const existing = document.getElementById('active-users-modal');
     if (existing) existing.remove();
 
+    // Deduplicate logins by admin name (case-insensitive) - only keep the newest login
+    const uniqueLogins = [];
+    const seenNames = new Set();
+    logins.forEach(login => {
+      const nameKey = (login.name || "").trim().toLowerCase();
+      if (nameKey && !seenNames.has(nameKey)) {
+        seenNames.add(nameKey);
+        uniqueLogins.push(login);
+      }
+    });
+
     const modal = document.createElement('div');
     modal.id = 'active-users-modal';
     modal.style.position = 'fixed';
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
     countText.style.fontSize = '1.05rem';
     countText.style.color = '#475569';
     countText.style.marginBottom = '24px';
-    countText.innerHTML = `Total recorded admin entries: <strong style="color: #A50034; font-size: 1.3rem;">${logins.length}</strong>`;
+    countText.innerHTML = `Total recorded admin entries: <strong style="color: #A50034; font-size: 1.3rem;">${uniqueLogins.length}</strong>`;
 
     const viewButton = document.createElement('button');
     viewButton.className = 'btn btn-primary';
@@ -226,19 +226,19 @@ document.addEventListener('DOMContentLoaded', () => {
     userListContainer.style.borderRadius = '12px';
     userListContainer.style.border = '1px solid rgba(15, 76, 129, 0.08)';
 
-    if (logins.length === 0) {
+    if (uniqueLogins.length === 0) {
       viewButton.disabled = true;
       viewButton.style.opacity = '0.6';
       viewButton.style.cursor = 'not-allowed';
     } else {
-      logins.forEach(login => {
+      uniqueLogins.forEach(login => {
         const row = document.createElement('div');
         row.style.display = 'flex';
         row.style.alignItems = 'center';
         row.style.gap = '12px';
         row.style.padding = '10px 0';
         row.style.borderBottom = '1px solid rgba(0,0,0,0.06)';
-        if (login === logins[logins.length - 1]) {
+        if (login === uniqueLogins[uniqueLogins.length - 1]) {
           row.style.borderBottom = 'none';
         }
 
@@ -261,22 +261,20 @@ document.addEventListener('DOMContentLoaded', () => {
         info.style.flexDirection = 'column';
         
         const name = document.createElement('span');
-        name.textContent = login.fullName || "Anonymous Admin";
+        name.textContent = login.name || "Anonymous Admin";
         name.style.fontSize = '13.5px';
         name.style.fontWeight = '700';
         name.style.color = '#1e293b';
 
         // Format Date Time nicely
         let dateStr = 'N/A';
-        if (login.submissionDate) {
-          const d = new Date(login.submissionDate);
+        if (login.created_at) {
+          const d = new Date(login.created_at);
           dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' at ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
         }
 
         const details = document.createElement('span');
-        const userAgentStr = Array.isArray(login.skills) && login.skills.length > 0 ? login.skills[0] : "";
-        const deviceName = parseUserAgent(userAgentStr);
-        details.textContent = `${deviceName} • ${dateStr}`;
+        details.textContent = `${login.device || "Unknown Device"} • ${dateStr}`;
         details.style.fontSize = '10.5px';
         details.style.color = '#64748b';
 
