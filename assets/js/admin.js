@@ -1,11 +1,10 @@
 import toast from './toast.js';
-import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, saveStudentProfile } from './api.js';
+import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, saveStudentProfile, getStudentProfile } from './api.js';
 import { IMAGEBB_API_KEY } from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // Session Keys
   const AUTH_KEY = 'admin_session_auth';
-  const ADMIN_PASS = 'nothing';
 
   // State
   let studentsData = [];
@@ -65,6 +64,14 @@ document.addEventListener('DOMContentLoaded', () => {
     showLogin();
   }
 
+  // Helper to hash password using SHA-256
+  async function sha256(message) {
+    const msgBuffer = new TextEncoder().encode(message);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
   // Login handler
   loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -85,48 +92,56 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingOverlay.classList.remove('active');
         passwordInput.value = '';
       }
-    } else if (enteredPassword === ADMIN_PASS) {
-      let adminName = prompt("Please enter your name for the login audit log:");
-      if (adminName === null) {
-        // User clicked cancel
-        passwordInput.value = '';
-        return;
-      }
-      adminName = adminName.trim();
-      if (adminName === "") {
-        adminName = "Anonymous Admin";
-      }
-
+    } else {
       loadingOverlay.classList.add('active');
-      
-      const logRecord = {
-        fullName: adminName,
-        college: "DON BOSCO COLLEGE",
-        department: "ADMIN_LOG",
-        phoneNumber: "",
-        email: "",
-        skills: [navigator.userAgent],
-        aboutMe: "",
-        photoUrl: "",
-        submissionDate: new Date().toISOString()
-      };
-
       try {
-        await saveStudentProfile(logRecord);
-        sessionStorage.setItem(AUTH_KEY, 'true');
-        toast.show("Verification successful. Access granted.", "success");
-        passwordInput.value = '';
-        showDashboard();
+        // Fetch hashed password from Supabase
+        const hashRecord = await getStudentProfile('admin_config_password');
+        // Fallback hash is for 'nothing'
+        const storedHash = hashRecord ? hashRecord.fullName : "1785cfc3bc6ac7738e8b38cdccd1af12563c2b9070e07af336a1bf8c0f772b6a";
+        
+        const enteredHash = await sha256(enteredPassword);
+        
+        if (enteredHash === storedHash) {
+          let adminName = prompt("Please enter your name for the login audit log:");
+          if (adminName === null) {
+            // User clicked cancel
+            passwordInput.value = '';
+            return;
+          }
+          adminName = adminName.trim();
+          if (adminName === "") {
+            adminName = "Anonymous Admin";
+          }
+
+          const logRecord = {
+            fullName: adminName,
+            college: "DON BOSCO COLLEGE",
+            department: "ADMIN_LOG",
+            phoneNumber: "",
+            email: "",
+            skills: [navigator.userAgent],
+            aboutMe: "",
+            photoUrl: "",
+            submissionDate: new Date().toISOString()
+          };
+
+          await saveStudentProfile(logRecord);
+          sessionStorage.setItem(AUTH_KEY, 'true');
+          toast.show("Verification successful. Access granted.", "success");
+          passwordInput.value = '';
+          showDashboard();
+        } else {
+          toast.show("Access Denied. Incorrect admin password.", "error");
+          passwordInput.focus();
+          passwordInput.select();
+        }
       } catch (err) {
         console.error(err);
-        toast.show("Failed to record login audit log: " + err.message, "error");
+        toast.show("Failed to verify password: " + err.message, "error");
       } finally {
         loadingOverlay.classList.remove('active');
       }
-    } else {
-      toast.show("Access Denied. Incorrect admin password.", "error");
-      passwordInput.focus();
-      passwordInput.select();
     }
   });
 
