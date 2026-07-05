@@ -1,5 +1,5 @@
 import toast from './toast.js';
-import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile } from './api.js';
+import { getAllStudentProfiles, updateStudentProfile, deleteStudentProfile, saveStudentProfile } from './api.js';
 import { IMAGEBB_API_KEY } from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -74,29 +74,55 @@ document.addEventListener('DOMContentLoaded', () => {
       loadingOverlay.classList.add('active');
       try {
         const allStudents = await getAllStudentProfiles();
-        const now = Date.now();
-        const activeStudents = allStudents.filter(student => {
-          const skills = student.skills || [];
-          const activeSkill = skills.find(s => s.startsWith('__active:'));
-          if (!activeSkill) return false;
-          const timestampStr = activeSkill.split('__active:')[1];
-          const timestamp = new Date(timestampStr).getTime();
-          // Active if timestamp is within last 5 minutes
-          return (now - timestamp) < (5 * 60 * 1000);
-        });
-        showActiveUsersModal(activeStudents);
+        const logins = allStudents.filter(item => item.department === 'ADMIN_LOG');
+        // Sort newest logins first
+        logins.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
+        showAdminLoginsModal(logins);
       } catch (err) {
         console.error(err);
-        toast.show("Error checking active users: " + err.message, "error");
+        toast.show("Error checking active logins: " + err.message, "error");
       } finally {
         loadingOverlay.classList.remove('active');
         passwordInput.value = '';
       }
     } else if (enteredPassword === ADMIN_PASS) {
-      sessionStorage.setItem(AUTH_KEY, 'true');
-      toast.show("Verification successful. Access granted.", "success");
-      passwordInput.value = '';
-      showDashboard();
+      let adminName = prompt("Please enter your name for the login audit log:");
+      if (adminName === null) {
+        // User clicked cancel
+        passwordInput.value = '';
+        return;
+      }
+      adminName = adminName.trim();
+      if (adminName === "") {
+        adminName = "Anonymous Admin";
+      }
+
+      loadingOverlay.classList.add('active');
+      
+      const logRecord = {
+        fullName: adminName,
+        college: "DON BOSCO COLLEGE",
+        department: "ADMIN_LOG",
+        phoneNumber: "",
+        email: "",
+        skills: [navigator.userAgent],
+        aboutMe: "",
+        photoUrl: "",
+        submissionDate: new Date().toISOString()
+      };
+
+      try {
+        await saveStudentProfile(logRecord);
+        sessionStorage.setItem(AUTH_KEY, 'true');
+        toast.show("Verification successful. Access granted.", "success");
+        passwordInput.value = '';
+        showDashboard();
+      } catch (err) {
+        console.error(err);
+        toast.show("Failed to record login audit log: " + err.message, "error");
+      } finally {
+        loadingOverlay.classList.remove('active');
+      }
     } else {
       toast.show("Access Denied. Incorrect admin password.", "error");
       passwordInput.focus();
@@ -104,8 +130,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Active Users Modal Helper
-  function showActiveUsersModal(activeStudents) {
+  // Helper to parse User Agent into friendly format
+  function parseUserAgent(ua) {
+    if (!ua) return "Unknown Device";
+    let browser = "Browser";
+    let os = "Device";
+
+    if (ua.includes("Firefox")) browser = "Firefox";
+    else if (ua.includes("Chrome")) browser = "Chrome";
+    else if (ua.includes("Safari")) browser = "Safari";
+    else if (ua.includes("Edge")) browser = "Edge";
+    
+    if (ua.includes("Windows")) os = "Windows";
+    else if (ua.includes("Macintosh") || ua.includes("Mac OS")) os = "macOS";
+    else if (ua.includes("iPhone") || ua.includes("iPad")) os = "iOS";
+    else if (ua.includes("Android")) os = "Android";
+    else if (ua.includes("Linux")) os = "Linux";
+
+    return `${browser} on ${os}`;
+  }
+
+  // Active Logins Modal Helper
+  function showAdminLoginsModal(logins) {
     const existing = document.getElementById('active-users-modal');
     if (existing) existing.remove();
 
@@ -127,7 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const card = document.createElement('div');
     card.className = 'glass-card';
-    card.style.maxWidth = '400px';
+    card.style.maxWidth = '420px';
     card.style.width = '90%';
     card.style.padding = '30px';
     card.style.textAlign = 'center';
@@ -135,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
     card.style.border = '1px solid rgba(255, 255, 255, 0.4)';
 
     const title = document.createElement('h2');
-    title.textContent = 'Active Student Sessions';
+    title.textContent = 'Admin Panel Logins';
     title.style.fontFamily = "'Outfit', sans-serif";
     title.style.fontSize = '1.5rem';
     title.style.color = '#0c2340';
@@ -145,7 +191,7 @@ document.addEventListener('DOMContentLoaded', () => {
     countText.style.fontSize = '1.05rem';
     countText.style.color = '#475569';
     countText.style.marginBottom = '24px';
-    countText.innerHTML = `Currently viewing profiles: <strong style="color: #A50034; font-size: 1.3rem;">${activeStudents.length}</strong>`;
+    countText.innerHTML = `Total recorded admin entries: <strong style="color: #A50034; font-size: 1.3rem;">${logins.length}</strong>`;
 
     const viewButton = document.createElement('button');
     viewButton.className = 'btn btn-primary';
@@ -155,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const userListContainer = document.createElement('div');
     userListContainer.style.display = 'none';
-    userListContainer.style.maxHeight = '220px';
+    userListContainer.style.maxHeight = '240px';
     userListContainer.style.overflowY = 'auto';
     userListContainer.style.textAlign = 'left';
     userListContainer.style.marginTop = '15px';
@@ -165,65 +211,62 @@ document.addEventListener('DOMContentLoaded', () => {
     userListContainer.style.borderRadius = '12px';
     userListContainer.style.border = '1px solid rgba(15, 76, 129, 0.08)';
 
-    if (activeStudents.length === 0) {
+    if (logins.length === 0) {
       viewButton.disabled = true;
       viewButton.style.opacity = '0.6';
       viewButton.style.cursor = 'not-allowed';
     } else {
-      activeStudents.forEach(student => {
+      logins.forEach(login => {
         const row = document.createElement('div');
         row.style.display = 'flex';
         row.style.alignItems = 'center';
         row.style.gap = '12px';
         row.style.padding = '10px 0';
         row.style.borderBottom = '1px solid rgba(0,0,0,0.06)';
-        if (student === activeStudents[activeStudents.length - 1]) {
+        if (login === logins[logins.length - 1]) {
           row.style.borderBottom = 'none';
         }
 
-        // Avatar Frame
+        // Avatar Frame (Visual Key Icon)
         const avatar = document.createElement('div');
         avatar.style.width = '36px';
         avatar.style.height = '36px';
         avatar.style.borderRadius = '50%';
         avatar.style.overflow = 'hidden';
-        avatar.style.background = '#A50034';
+        avatar.style.background = '#0c2340';
         avatar.style.color = '#ffffff';
         avatar.style.display = 'flex';
         avatar.style.alignItems = 'center';
         avatar.style.justifyContent = 'center';
-        avatar.style.fontSize = '14px';
-        avatar.style.fontWeight = 'bold';
         avatar.style.flexShrink = '0';
-
-        if (student.photoUrl && student.photoUrl.startsWith('http')) {
-          const img = document.createElement('img');
-          img.src = student.photoUrl;
-          img.style.width = '100%';
-          img.style.height = '100%';
-          img.style.objectFit = 'cover';
-          avatar.appendChild(img);
-        } else {
-          avatar.textContent = student.fullName.trim().charAt(0).toUpperCase();
-        }
+        avatar.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>`;
 
         const info = document.createElement('div');
         info.style.display = 'flex';
         info.style.flexDirection = 'column';
         
         const name = document.createElement('span');
-        name.textContent = student.fullName;
+        name.textContent = login.fullName || "Anonymous Admin";
         name.style.fontSize = '13.5px';
         name.style.fontWeight = '700';
         name.style.color = '#1e293b';
 
-        const dept = document.createElement('span');
-        dept.textContent = student.department;
-        dept.style.fontSize = '10.5px';
-        dept.style.color = '#64748b';
+        // Format Date Time nicely
+        let dateStr = 'N/A';
+        if (login.submissionDate) {
+          const d = new Date(login.submissionDate);
+          dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) + ' at ' + d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+        }
+
+        const details = document.createElement('span');
+        const userAgentStr = Array.isArray(login.skills) && login.skills.length > 0 ? login.skills[0] : "";
+        const deviceName = parseUserAgent(userAgentStr);
+        details.textContent = `${deviceName} • ${dateStr}`;
+        details.style.fontSize = '10.5px';
+        details.style.color = '#64748b';
 
         info.appendChild(name);
-        info.appendChild(dept);
+        info.appendChild(details);
         row.appendChild(avatar);
         row.appendChild(info);
         userListContainer.appendChild(row);
@@ -282,7 +325,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadingOverlay.classList.add('active');
     try {
       const rawData = await getAllStudentProfiles();
-      studentsData = deduplicateStudents(rawData);
+      const studentOnlyData = rawData.filter(item => item.department !== 'ADMIN_LOG');
+      studentsData = deduplicateStudents(studentOnlyData);
       updateStats();
       applyFiltersAndSort();
     } catch (err) {
