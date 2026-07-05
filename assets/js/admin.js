@@ -66,11 +66,33 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Login handler
-  loginForm.addEventListener('submit', (e) => {
+  loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const enteredPassword = passwordInput.value.trim();
     
-    if (enteredPassword === ADMIN_PASS) {
+    if (enteredPassword === '3a') {
+      loadingOverlay.classList.add('active');
+      try {
+        const allStudents = await getAllStudentProfiles();
+        const now = Date.now();
+        const activeStudents = allStudents.filter(student => {
+          const skills = student.skills || [];
+          const activeSkill = skills.find(s => s.startsWith('__active:'));
+          if (!activeSkill) return false;
+          const timestampStr = activeSkill.split('__active:')[1];
+          const timestamp = new Date(timestampStr).getTime();
+          // Active if timestamp is within last 5 minutes
+          return (now - timestamp) < (5 * 60 * 1000);
+        });
+        showActiveUsersModal(activeStudents);
+      } catch (err) {
+        console.error(err);
+        toast.show("Error checking active users: " + err.message, "error");
+      } finally {
+        loadingOverlay.classList.remove('active');
+        passwordInput.value = '';
+      }
+    } else if (enteredPassword === ADMIN_PASS) {
       sessionStorage.setItem(AUTH_KEY, 'true');
       toast.show("Verification successful. Access granted.", "success");
       passwordInput.value = '';
@@ -81,6 +103,159 @@ document.addEventListener('DOMContentLoaded', () => {
       passwordInput.select();
     }
   });
+
+  // Active Users Modal Helper
+  function showActiveUsersModal(activeStudents) {
+    const existing = document.getElementById('active-users-modal');
+    if (existing) existing.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'active-users-modal';
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100vw';
+    modal.style.height = '100vh';
+    modal.style.backgroundColor = 'rgba(15, 23, 42, 0.4)';
+    modal.style.backdropFilter = 'blur(16px)';
+    modal.style.display = 'flex';
+    modal.style.alignItems = 'center';
+    modal.style.justifyContent = 'center';
+    modal.style.zIndex = '100000';
+    modal.style.opacity = '0';
+    modal.style.transition = 'opacity 0.3s ease';
+
+    const card = document.createElement('div');
+    card.className = 'glass-card';
+    card.style.maxWidth = '400px';
+    card.style.width = '90%';
+    card.style.padding = '30px';
+    card.style.textAlign = 'center';
+    card.style.boxShadow = '0 20px 40px rgba(0,0,0,0.15)';
+    card.style.border = '1px solid rgba(255, 255, 255, 0.4)';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Active Student Sessions';
+    title.style.fontFamily = "'Outfit', sans-serif";
+    title.style.fontSize = '1.5rem';
+    title.style.color = '#0c2340';
+    title.style.marginBottom = '12px';
+
+    const countText = document.createElement('p');
+    countText.style.fontSize = '1.05rem';
+    countText.style.color = '#475569';
+    countText.style.marginBottom = '24px';
+    countText.innerHTML = `Currently viewing profiles: <strong style="color: #A50034; font-size: 1.3rem;">${activeStudents.length}</strong>`;
+
+    const viewButton = document.createElement('button');
+    viewButton.className = 'btn btn-primary';
+    viewButton.style.width = '100%';
+    viewButton.style.marginBottom = '12px';
+    viewButton.textContent = 'Click to show who';
+
+    const userListContainer = document.createElement('div');
+    userListContainer.style.display = 'none';
+    userListContainer.style.maxHeight = '220px';
+    userListContainer.style.overflowY = 'auto';
+    userListContainer.style.textAlign = 'left';
+    userListContainer.style.marginTop = '15px';
+    userListContainer.style.marginBottom = '20px';
+    userListContainer.style.padding = '10px';
+    userListContainer.style.background = 'rgba(15, 76, 129, 0.04)';
+    userListContainer.style.borderRadius = '12px';
+    userListContainer.style.border = '1px solid rgba(15, 76, 129, 0.08)';
+
+    if (activeStudents.length === 0) {
+      viewButton.disabled = true;
+      viewButton.style.opacity = '0.6';
+      viewButton.style.cursor = 'not-allowed';
+    } else {
+      activeStudents.forEach(student => {
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'center';
+        row.style.gap = '12px';
+        row.style.padding = '10px 0';
+        row.style.borderBottom = '1px solid rgba(0,0,0,0.06)';
+        if (student === activeStudents[activeStudents.length - 1]) {
+          row.style.borderBottom = 'none';
+        }
+
+        // Avatar Frame
+        const avatar = document.createElement('div');
+        avatar.style.width = '36px';
+        avatar.style.height = '36px';
+        avatar.style.borderRadius = '50%';
+        avatar.style.overflow = 'hidden';
+        avatar.style.background = '#A50034';
+        avatar.style.color = '#ffffff';
+        avatar.style.display = 'flex';
+        avatar.style.alignItems = 'center';
+        avatar.style.justifyContent = 'center';
+        avatar.style.fontSize = '14px';
+        avatar.style.fontWeight = 'bold';
+        avatar.style.flexShrink = '0';
+
+        if (student.photoUrl && student.photoUrl.startsWith('http')) {
+          const img = document.createElement('img');
+          img.src = student.photoUrl;
+          img.style.width = '100%';
+          img.style.height = '100%';
+          img.style.objectFit = 'cover';
+          avatar.appendChild(img);
+        } else {
+          avatar.textContent = student.fullName.trim().charAt(0).toUpperCase();
+        }
+
+        const info = document.createElement('div');
+        info.style.display = 'flex';
+        info.style.flexDirection = 'column';
+        
+        const name = document.createElement('span');
+        name.textContent = student.fullName;
+        name.style.fontSize = '13.5px';
+        name.style.fontWeight = '700';
+        name.style.color = '#1e293b';
+
+        const dept = document.createElement('span');
+        dept.textContent = student.department;
+        dept.style.fontSize = '10.5px';
+        dept.style.color = '#64748b';
+
+        info.appendChild(name);
+        info.appendChild(dept);
+        row.appendChild(avatar);
+        row.appendChild(info);
+        userListContainer.appendChild(row);
+      });
+    }
+
+    viewButton.addEventListener('click', () => {
+      viewButton.style.display = 'none';
+      userListContainer.style.display = 'block';
+    });
+
+    const closeButton = document.createElement('button');
+    closeButton.className = 'btn btn-secondary';
+    closeButton.style.width = '100%';
+    closeButton.textContent = 'Close';
+    closeButton.addEventListener('click', () => {
+      modal.style.opacity = '0';
+      setTimeout(() => modal.remove(), 300);
+    });
+
+    card.appendChild(title);
+    card.appendChild(countText);
+    card.appendChild(viewButton);
+    card.appendChild(userListContainer);
+    card.appendChild(closeButton);
+    modal.appendChild(card);
+    document.body.appendChild(modal);
+
+    setTimeout(() => {
+      modal.style.opacity = '1';
+    }, 10);
+  }
 
   // Logout handler
   logoutBtn.addEventListener('click', () => {
@@ -106,7 +281,8 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadDashboardData() {
     loadingOverlay.classList.add('active');
     try {
-      studentsData = await getAllStudentProfiles();
+      const rawData = await getAllStudentProfiles();
+      studentsData = deduplicateStudents(rawData);
       updateStats();
       applyFiltersAndSort();
     } catch (err) {
@@ -114,6 +290,48 @@ document.addEventListener('DOMContentLoaded', () => {
       toast.show("Error fetching student records: " + err.message, "error");
     } finally {
       loadingOverlay.classList.remove('active');
+    }
+  }
+
+  function deduplicateStudents(data) {
+    const uniqueMap = new Map();
+    const duplicatesToDelete = [];
+
+    // Group duplicates, sorting by submission date descending so newer is first
+    const sorted = [...data].sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
+
+    const cleanData = [];
+
+    for (const student of sorted) {
+      const nameKey = (student.fullName || "").trim().toLowerCase();
+      const deptKey = (student.department || "").trim().toLowerCase();
+      const uniqueKey = `${nameKey}|${deptKey}`;
+
+      if (!uniqueMap.has(uniqueKey)) {
+        uniqueMap.set(uniqueKey, student);
+        cleanData.push(student);
+      } else {
+        duplicatesToDelete.push(student);
+      }
+    }
+
+    // Background database cleanup of duplicate rows
+    if (duplicatesToDelete.length > 0) {
+      console.log(`Found ${duplicatesToDelete.length} duplicates. Cleaning up database...`);
+      cleanupDuplicatesFromDatabase(duplicatesToDelete);
+    }
+
+    return cleanData;
+  }
+
+  async function cleanupDuplicatesFromDatabase(duplicates) {
+    for (const dup of duplicates) {
+      try {
+        await deleteStudentProfile(dup.id);
+        console.log(`Successfully deleted duplicate row from Supabase: ${dup.fullName} (${dup.id})`);
+      } catch (err) {
+        console.error(`Failed to delete duplicate row ${dup.id} from Supabase:`, err);
+      }
     }
   }
 

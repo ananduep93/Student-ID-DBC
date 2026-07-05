@@ -1,5 +1,5 @@
 import toast from './toast.js';
-import { getStudentProfile } from './api.js';
+import { getStudentProfile, updateStudentProfile } from './api.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Query parameter extraction
@@ -61,6 +61,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     renderProfileCard(student);
+
+    // Update active status using skills array as storage
+    const currentSkills = student.skills || [];
+    const cleanSkills = currentSkills.filter(s => !s.startsWith('__active:'));
+    cleanSkills.push(`__active:${new Date().toISOString()}`);
+    updateStudentProfile(studentId, { skills: cleanSkills }).catch(err => {
+      console.error("Failed to update active status:", err);
+    });
   } catch (err) {
     console.error(err);
     toast.show("Failed to load profile: " + err.message, "error");
@@ -166,7 +174,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Skills Render (using .skill-tag class)
     profileSkills.innerHTML = '';
-    const skillsArray = Array.isArray(student.skills) ? student.skills : [];
+    const skillsArray = (Array.isArray(student.skills) ? student.skills : [])
+      .filter(s => !s.startsWith('__active:'));
     if (skillsArray.length > 0) {
       skillsSection.style.display = 'block';
       skillsArray.forEach(skill => {
