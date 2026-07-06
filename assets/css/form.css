@@ -136,6 +136,11 @@
   box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.15);
 }
 
+.form-group.warning .glass-input {
+  border-color: #d97706;
+  box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.15);
+}
+
 .form-group.success .glass-input {
   border-color: var(--accent-secondary);
 }
@@ -174,6 +179,12 @@
 }
 
 .form-group.error .error-msg {
+  opacity: 1;
+  height: auto;
+  margin-top: 0.25rem;
+}
+
+.form-group.warning .error-msg {
   opacity: 1;
   height: auto;
   margin-top: 0.25rem;

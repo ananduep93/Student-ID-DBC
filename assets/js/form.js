@@ -20,6 +20,87 @@ document.addEventListener('DOMContentLoaded', () => {
   // Pre-fill / Setup inputs
   setupSkillsTags();
   setupBioCounter();
+  setupDuplicateCheck();
+
+  let isNameDuplicate = false;
+
+  function setupDuplicateCheck() {
+    const fullNameInput = document.getElementById('full-name');
+    const courseYearSelect = document.getElementById('course-year');
+    const phoneInput = document.getElementById('phone-number');
+    const emailInput = document.getElementById('email');
+    const nameErrorMsg = fullNameInput.nextElementSibling;
+
+    async function checkDuplicateName() {
+      const nameVal = fullNameInput.value.trim();
+      const batchVal = courseYearSelect.value;
+      const phoneVal = phoneInput.value.trim();
+      const emailVal = emailInput.value.trim();
+
+      if (!nameVal || !batchVal) {
+        isNameDuplicate = false;
+        nameErrorMsg.textContent = "Please enter your name";
+        nameErrorMsg.style.color = "";
+        return;
+      }
+
+      try {
+        const existing = await getStudentProfilesByName(nameVal, batchVal);
+        if (existing && existing.length > 0) {
+          // Check other details: email or phone
+          const exactMatch = existing.find(p => 
+            (p.phoneNumber && p.phoneNumber.trim() === phoneVal) || 
+            (p.email && p.email.trim().toLowerCase() === emailVal.toLowerCase())
+          );
+
+          if (exactMatch) {
+            // Same student updating their own profile
+            isNameDuplicate = false;
+            fullNameInput.closest('.form-group').classList.remove('error');
+            fullNameInput.closest('.form-group').classList.add('warning');
+            nameErrorMsg.textContent = "You are already registered. Submitting again will update/overwrite your profile.";
+            nameErrorMsg.style.color = "#d97706";
+            nameErrorMsg.style.display = "block";
+          } else {
+            // Different student with same name
+            isNameDuplicate = true;
+            fullNameInput.closest('.form-group').classList.add('error');
+            fullNameInput.closest('.form-group').classList.remove('success');
+            fullNameInput.closest('.form-group').classList.remove('warning');
+            nameErrorMsg.textContent = "Another student with this name is registered. Please ensure phone/email is unique.";
+            nameErrorMsg.style.color = "";
+            nameErrorMsg.style.display = "block";
+          }
+        } else {
+          isNameDuplicate = false;
+          nameErrorMsg.textContent = "Please enter your name";
+          nameErrorMsg.style.color = "";
+          if (fullNameInput.closest('.form-group').classList.contains('warning')) {
+            fullNameInput.closest('.form-group').classList.remove('warning');
+            fullNameInput.closest('.form-group').classList.add('success');
+          }
+        }
+      } catch (err) {
+        console.warn("Error checking duplicate name:", err);
+      }
+    }
+
+    function debounce(func, wait) {
+      let timeout;
+      return function (...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    const debouncedCheck = debounce(checkDuplicateName, 500);
+
+    fullNameInput.addEventListener('input', debouncedCheck);
+    fullNameInput.addEventListener('blur', checkDuplicateName);
+    courseYearSelect.addEventListener('change', checkDuplicateName);
+    phoneInput.addEventListener('input', debouncedCheck);
+    emailInput.addEventListener('input', debouncedCheck);
+  }
 
   // Character counter for Bio
   function setupBioCounter() {
@@ -85,7 +166,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Validate name
     const name = document.getElementById('full-name');
-    isValid = validateField(name, name.value.trim().length > 0) && isValid;
+    if (isNameDuplicate) {
+      isValid = validateField(name, false) && isValid;
+    } else {
+      isValid = validateField(name, name.value.trim().length > 0) && isValid;
+    }
 
     // 2. Validate department
     const dept = document.getElementById('department');
@@ -202,6 +287,8 @@ document.addEventListener('DOMContentLoaded', () => {
           } else {
             clearFieldStatus(input);
           }
+        } else if (input.id === 'full-name') {
+          // Handled by debounced duplicate check
         } else {
           validateField(input, input.value.trim().length > 0);
         }
