@@ -1,5 +1,5 @@
 import toast from './toast.js';
-import { saveStudentProfile } from './api.js';
+import { saveStudentProfile, getStudentProfilesByName, deleteStudentProfile } from './api.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   // DOM Elements
@@ -209,6 +209,48 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  function getDetailsScore(student) {
+    let score = 0;
+    
+    // Core fields
+    if (student.fullName && student.fullName.trim() !== '') score++;
+    if (student.department && student.department.trim() !== '') score++;
+    if (student.phoneNumber && student.phoneNumber.trim() !== '') score++;
+    if (student.email && student.email.trim() !== '') score++;
+    
+    // Additional/Social fields
+    if (student.aboutMe && student.aboutMe.trim() !== '') score++;
+    if (student.bloodGroup && student.bloodGroup.trim() !== '') score++;
+    if (student.address && student.address.trim() !== '') score++;
+    if (student.photoUrl && student.photoUrl.trim() !== '' && student.photoUrl.startsWith('http')) score++;
+    if (student.linkedinUrl && student.linkedinUrl.trim() !== '') score++;
+    if (student.instagramUrl && student.instagramUrl.trim() !== '') score++;
+    if (student.githubUrl && student.githubUrl.trim() !== '') score++;
+    if (student.portfolioUrl && student.portfolioUrl.trim() !== '') score++;
+    
+    // Skills
+    if (student.skills) {
+      if (Array.isArray(student.skills)) {
+        if (student.skills.length > 0) score++;
+      } else if (typeof student.skills === 'string') {
+        try {
+          const parsed = JSON.parse(student.skills);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            score++;
+          } else if (student.skills.trim() !== '' && student.skills.trim() !== '[]') {
+            score++;
+          }
+        } catch (e) {
+          if (student.skills.trim() !== '') {
+            score++;
+          }
+        }
+      }
+    }
+    
+    return score;
+  }
+
   // Submit profile details to api layer
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -220,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Activate loading screen
     loadingOverlay.classList.add('active');
-    loadingText.textContent = "Saving profile information...";
+    loadingText.textContent = "Checking for duplicate submissions...";
 
     try {
       // 1. Prepare payload
@@ -242,10 +284,55 @@ document.addEventListener('DOMContentLoaded', () => {
         address: document.getElementById('address').value.trim()
       };
 
-      // 2. Save details to Firestore (or localMock)
-      const profileId = await saveStudentProfile(profileData);
+      // 2. Check for duplicate profiles with same name in same batch
+      const existingProfiles = await getStudentProfilesByName(profileData.fullName, profileData.courseYear);
       
-      console.log("Successfully generated profile ID: ", profileId);
+      let shouldSaveNew = true;
+      let existingToClean = [];
+
+      if (existingProfiles && existingProfiles.length > 0) {
+        // Sort existing profiles by details score descending, then submission date descending
+        const sortedExisting = existingProfiles.sort((a, b) => {
+          const scoreA = getDetailsScore(a);
+          const scoreB = getDetailsScore(b);
+          if (scoreA !== scoreB) return scoreB - scoreA;
+          return new Date(b.submissionDate) - new Date(a.submissionDate);
+        });
+
+        const bestExisting = sortedExisting[0];
+        const newScore = getDetailsScore(profileData);
+        const existingScore = getDetailsScore(bestExisting);
+
+        if (newScore >= existingScore) {
+          // The new submission has equal or more details, mark existing duplicates for deletion
+          existingToClean = existingProfiles;
+          shouldSaveNew = true;
+        } else {
+          // Keep the existing profile because it has strictly more details
+          console.log("Existing profile has more details. Keeping existing profile:", bestExisting.id);
+          shouldSaveNew = false;
+        }
+      }
+
+      if (shouldSaveNew) {
+        loadingText.textContent = "Saving profile information...";
+        const profileId = await saveStudentProfile(profileData);
+        console.log("Successfully generated profile ID: ", profileId);
+
+        // Delete old duplicates
+        if (existingToClean.length > 0) {
+          loadingText.textContent = "Removing older duplicate profiles...";
+          for (const ext of existingToClean) {
+            try {
+              await deleteStudentProfile(ext.id, profileData.courseYear);
+            } catch (delErr) {
+              console.warn("Failed to delete old duplicate:", delErr);
+            }
+          }
+        }
+      } else {
+        console.log("Skipped saving new profile because a more detailed one exists.");
+      }
       
       // Delay briefly to allow complete rendering
       setTimeout(() => {

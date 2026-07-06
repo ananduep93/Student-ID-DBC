@@ -317,6 +317,48 @@ export const deleteStudentProfile = async (id, batch = '2025-2029') => {
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// 5.5. Get Student Profiles By Name → Supabase (fallback: localStorage)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export const getStudentProfilesByName = async (fullName, batch = '2025-2029') => {
+  const table = batch;
+  if (isSupabaseConfigured()) {
+    try {
+      const res = await withTimeout(
+        fetch(`${SUPABASE_URL}/rest/v1/${table}?fullName=eq.${encodeURIComponent(fullName)}&select=*`, {
+          headers: getSupabaseHeaders()
+        }),
+        10000,
+        "Supabase fetch by name timed out."
+      );
+      if (!res.ok) {
+        throw new Error(`Supabase query failed: ${res.status}`);
+      }
+      return await res.json();
+    } catch (error) {
+      console.error("Supabase getStudentProfilesByName error, falling back to local cache:", error);
+      const cached = localStorage.getItem(`student_profiles_${batch}`);
+      if (cached) {
+        try {
+          const data = JSON.parse(cached);
+          if (Array.isArray(data)) {
+            return data.filter(s => (s.fullName || "").trim().toLowerCase() === fullName.trim().toLowerCase());
+          }
+        } catch (e) {
+          console.warn("Error parsing cache:", e);
+        }
+      }
+      return [];
+    }
+  } else {
+    return mockDB.getProfiles().filter(p => 
+      p.courseYear === batch && 
+      (p.fullName || "").trim().toLowerCase() === fullName.trim().toLowerCase()
+    );
+  }
+};
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // 6. Get Admin Configuration Keys → Supabase passwords table
 // ═══════════════════════════════════════════════════════════════════════════════
 
