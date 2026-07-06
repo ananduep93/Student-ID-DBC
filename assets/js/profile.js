@@ -26,6 +26,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailValBio = document.getElementById('detail-val-bio');
   const detailRowBlood = document.getElementById('detail-row-blood');
   const detailValBlood = document.getElementById('detail-val-blood');
+  const detailRowDob = document.getElementById('detail-row-dob');
+  const detailValDob = document.getElementById('detail-val-dob');
   const detailRowAddress = document.getElementById('detail-row-address');
   const detailValAddress = document.getElementById('detail-val-address');
   const profileSkills = document.getElementById('profile-skills');
@@ -105,10 +107,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       profileDept.textContent = dept;
     }
 
-    // Set dynamic academic year range based on submission date (default 4-year span, e.g. 2024 — 2028)
-    const startYear = student.submissionDate ? new Date(student.submissionDate).getFullYear() : 2024;
-    const endYear = startYear + 4;
-    profileYear.textContent = `${startYear} — ${endYear}`;
+    // Set academic year range based on courseYear if available, fallback to dynamic submission date span
+    if (student.courseYear && student.courseYear.trim() !== "") {
+      profileYear.textContent = student.courseYear;
+    } else {
+      const startYear = student.submissionDate ? new Date(student.submissionDate).getFullYear() : 2024;
+      const endYear = startYear + 4;
+      profileYear.textContent = `${startYear} — ${endYear}`;
+    }
 
     // Render photo or default initials-based avatar
     const hasPhoto = student.photoUrl && student.photoUrl.startsWith('http');
@@ -144,6 +150,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       hasPersonalDetails = true;
     } else {
       detailRowBio.style.display = 'none';
+    }
+
+    // Date of Birth
+    if (student.dob && student.dob.trim() !== "") {
+      try {
+        const date = new Date(student.dob);
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        detailValDob.textContent = date.toLocaleDateString(undefined, options);
+      } catch (e) {
+        detailValDob.textContent = student.dob;
+      }
+      detailRowDob.style.display = 'flex';
+      hasPersonalDetails = true;
+    } else {
+      detailRowDob.style.display = 'none';
     }
 
     // 2. Blood Group

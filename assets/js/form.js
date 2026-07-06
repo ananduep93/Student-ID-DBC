@@ -101,6 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     isValid = validateField(email, emailRegex.test(email.value.trim())) && isValid;
 
+    // Validate DOB (required)
+    const dobElement = document.getElementById('dob');
+    isValid = validateField(dobElement, dobElement.value !== "") && isValid;
+
+    // Validate course year (required)
+    const courseYearElement = document.getElementById('course-year');
+    isValid = validateField(courseYearElement, courseYearElement.value !== "") && isValid;
+
     // 5. LinkedIn (Optional URL)
     const linkedin = document.getElementById('linkedin-url');
     if (linkedin.value.trim().length > 0) {
@@ -222,6 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
         department: document.getElementById('department').value,
         phoneNumber: document.getElementById('phone-number').value.trim(),
         email: document.getElementById('email').value.trim(),
+        dob: document.getElementById('dob').value,
+        courseYear: document.getElementById('course-year').value,
         linkedinUrl: document.getElementById('linkedin-url').value.trim(),
         instagramUrl: document.getElementById('instagram-url').value.trim(),
         githubUrl: document.getElementById('github-url').value.trim(),

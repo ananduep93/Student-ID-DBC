@@ -83,10 +83,12 @@ export const saveStudentProfile = async (profileData) => {
     submissionDate
   };
 
+  const table = profileData.courseYear || '2025-2029';
+
   if (isSupabaseConfigured()) {
     try {
       const res = await withTimeout(
-        fetch(`${SUPABASE_URL}/rest/v1/students`, {
+        fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
           method: 'POST',
           headers: {
             ...getSupabaseHeaders(),
@@ -100,7 +102,7 @@ export const saveStudentProfile = async (profileData) => {
       if (!res.ok) {
         throw new Error(`Supabase error: ${res.status} ${await res.text()}`);
       }
-      console.log("Supabase: profile saved with ID:", uniqueId);
+      console.log(`Supabase: profile saved with ID ${uniqueId} in table ${table}`);
       return uniqueId;
     } catch (error) {
       console.error("Supabase save error:", error);
@@ -118,49 +120,92 @@ export const saveStudentProfile = async (profileData) => {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const getStudentProfile = async (id) => {
-  // First check if we have the student in the local cache
-  const cached = localStorage.getItem('student_profiles');
-  if (cached) {
+  // First check if we have the student in the local cache across all batches
+  const cached1 = localStorage.getItem('student_profiles_2025-2029');
+  const cached2 = localStorage.getItem('student_profiles_2026-2030');
+  let student = null;
+  let batch = '2025-2029';
+
+  if (cached1) {
     try {
-      const data = JSON.parse(cached);
-      const student = Array.isArray(data) ? data.find(item => item.id === id) : null;
-      if (student) {
-        // Return instantly from local cache, revalidate in background
-        setTimeout(() => {
-          fetch(`${SUPABASE_URL}/rest/v1/students?id=eq.${id}&select=*`, {
-            headers: getSupabaseHeaders()
-          }).then(res => res.json()).then(newData => {
-            if (newData.length > 0) {
-              const currentData = JSON.parse(localStorage.getItem('student_profiles') || '[]');
-              const idx = currentData.findIndex(item => item.id === id);
-              if (idx !== -1) {
-                currentData[idx] = newData[0];
-                localStorage.setItem('student_profiles', JSON.stringify(currentData));
-              }
-            }
-          }).catch(err => console.warn("Background revalidation failed:", err));
-        }, 10);
-        return student;
-      }
+      const data = JSON.parse(cached1);
+      student = Array.isArray(data) ? data.find(item => item.id === id) : null;
+      if (student) batch = '2025-2029';
     } catch (e) {
-      console.warn("Error parsing cache:", e);
+      console.warn("Error parsing cache 2025-2029:", e);
     }
+  }
+  if (!student && cached2) {
+    try {
+      const data = JSON.parse(cached2);
+      student = Array.isArray(data) ? data.find(item => item.id === id) : null;
+      if (student) batch = '2026-2030';
+    } catch (e) {
+      console.warn("Error parsing cache 2026-2030:", e);
+    }
+  }
+
+  // Fallback: check legacy cache
+  if (!student) {
+    const legacyCached = localStorage.getItem('student_profiles');
+    if (legacyCached) {
+      try {
+        const data = JSON.parse(legacyCached);
+        student = Array.isArray(data) ? data.find(item => item.id === id) : null;
+      } catch (e) {
+        console.warn("Error parsing legacy cache:", e);
+      }
+    }
+  }
+
+  if (student) {
+    // Return instantly from local cache, revalidate in background
+    setTimeout(() => {
+      fetch(`${SUPABASE_URL}/rest/v1/${batch}?id=eq.${id}&select=*`, {
+        headers: getSupabaseHeaders()
+      }).then(res => res.json()).then(newData => {
+        if (newData.length > 0) {
+          const cacheKey = `student_profiles_${batch}`;
+          const currentData = JSON.parse(localStorage.getItem(cacheKey) || '[]');
+          const idx = currentData.findIndex(item => item.id === id);
+          if (idx !== -1) {
+            currentData[idx] = newData[0];
+            localStorage.setItem(cacheKey, JSON.stringify(currentData));
+          }
+        }
+      }).catch(err => console.warn("Background revalidation failed:", err));
+    }, 10);
+    return student;
   }
 
   if (isSupabaseConfigured()) {
     try {
-      const res = await withTimeout(
-        fetch(`${SUPABASE_URL}/rest/v1/students?id=eq.${id}&select=*`, {
+      // First try to fetch from 2025-2029
+      let res = await withTimeout(
+        fetch(`${SUPABASE_URL}/rest/v1/2025-2029?id=eq.${id}&select=*`, {
           headers: getSupabaseHeaders()
         }),
         10000,
         "Supabase fetch timed out."
       );
-      if (!res.ok) {
-        throw new Error(`Supabase fetch failed: ${res.status}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) return data[0];
       }
-      const data = await res.json();
-      return data.length > 0 ? data[0] : null;
+
+      // If not found, try 2026-2030
+      res = await withTimeout(
+        fetch(`${SUPABASE_URL}/rest/v1/2026-2030?id=eq.${id}&select=*`, {
+          headers: getSupabaseHeaders()
+        }),
+        10000,
+        "Supabase fetch timed out."
+      );
+      if (res.ok) {
+        const data = await res.json();
+        if (data.length > 0) return data[0];
+      }
+      return null;
     } catch (error) {
       console.error("Supabase get error:", error);
       throw error;
@@ -174,11 +219,12 @@ export const getStudentProfile = async (id) => {
 // 3. Get All Student Profiles → Supabase (fallback: localStorage)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const getAllStudentProfiles = async () => {
+export const getAllStudentProfiles = async (batch = '2025-2029') => {
+  const table = batch;
   if (isSupabaseConfigured()) {
     try {
       const res = await withTimeout(
-        fetch(`${SUPABASE_URL}/rest/v1/students?select=*&order=submissionDate.desc`, {
+        fetch(`${SUPABASE_URL}/rest/v1/${table}?select=*&order=submissionDate.desc`, {
           headers: getSupabaseHeaders()
         }),
         10000,
@@ -188,19 +234,22 @@ export const getAllStudentProfiles = async () => {
         throw new Error(`Supabase query failed: ${res.status}`);
       }
       const data = await res.json();
-      // Cache data in localStorage for fast subsequent loads
-      localStorage.setItem('student_profiles', JSON.stringify(data));
+      // Cache data in localStorage under specific batch key
+      localStorage.setItem(`student_profiles_${batch}`, JSON.stringify(data));
       return data;
     } catch (error) {
-      console.error("Supabase getAll error, falling back to local cache:", error);
-      const cached = localStorage.getItem('student_profiles');
+      console.error(`Supabase getAll error for table ${table}, falling back to local cache:`, error);
+      const cached = localStorage.getItem(`student_profiles_${batch}`);
       if (cached) {
         return JSON.parse(cached);
       }
       throw error;
     }
   } else {
-    return mockDB.getProfiles().sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
+    // Mock DB fallback - filter by courseYear
+    return mockDB.getProfiles()
+      .filter(p => p.courseYear === batch)
+      .sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
   }
 };
 
@@ -208,11 +257,12 @@ export const getAllStudentProfiles = async () => {
 // 4. Update Student Profile → Supabase (fallback: localStorage)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const updateStudentProfile = async (id, updatedFields) => {
+export const updateStudentProfile = async (id, updatedFields, batch = '2025-2029') => {
+  const table = batch;
   if (isSupabaseConfigured()) {
     try {
       const res = await withTimeout(
-        fetch(`${SUPABASE_URL}/rest/v1/students?id=eq.${id}`, {
+        fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
           method: 'PATCH',
           headers: {
             ...getSupabaseHeaders(),
@@ -240,11 +290,12 @@ export const updateStudentProfile = async (id, updatedFields) => {
 // 5. Delete Student Profile → Supabase (fallback: localStorage)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export const deleteStudentProfile = async (id) => {
+export const deleteStudentProfile = async (id, batch = '2025-2029') => {
+  const table = batch;
   if (isSupabaseConfigured()) {
     try {
       const res = await withTimeout(
-        fetch(`${SUPABASE_URL}/rest/v1/students?id=eq.${id}`, {
+        fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
           method: 'DELETE',
           headers: getSupabaseHeaders()
         }),

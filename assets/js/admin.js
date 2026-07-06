@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // State
   let studentsData = [];
   let filteredData = [];
+  let activeBatch = '2025-2029';
 
   // DOM Elements
   const loginWrapper = document.getElementById('login-wrapper');
@@ -25,6 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Search, Filter & Sort
   const searchInput = document.getElementById('search-input');
+  const filterBatch = document.getElementById('filter-batch');
   const filterDept = document.getElementById('filter-dept');
   const sortOrder = document.getElementById('sort-order');
   const studentsList = document.getElementById('students-list');
@@ -43,6 +45,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const editDept = document.getElementById('edit-dept');
   const editPhone = document.getElementById('edit-phone');
   const editEmail = document.getElementById('edit-email');
+  const editDob = document.getElementById('edit-dob');
+  const editCourseYear = document.getElementById('edit-course-year');
   const editBio = document.getElementById('edit-bio');
   const editBlood = document.getElementById('edit-blood');
   const editAddress = document.getElementById('edit-address');
@@ -353,7 +357,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 2. Fetch and render dashboard
   async function loadDashboardData() {
-    const cachedData = localStorage.getItem('student_profiles');
+    const cacheKey = `student_profiles_${activeBatch}`;
+    const cachedData = localStorage.getItem(cacheKey);
     if (cachedData) {
       try {
         const rawData = JSON.parse(cachedData);
@@ -365,11 +370,14 @@ document.addEventListener('DOMContentLoaded', () => {
         console.warn("Error parsing student cache:", e);
       }
     } else {
+      studentsData = [];
+      filteredData = [];
+      renderStudents();
       loadingOverlay.classList.add('active');
     }
 
     try {
-      const rawData = await getAllStudentProfiles();
+      const rawData = await getAllStudentProfiles(activeBatch);
       const studentOnlyData = rawData.filter(item => item.department !== 'ADMIN_LOG');
       studentsData = deduplicateStudents(studentOnlyData);
       updateStats();
@@ -466,8 +474,9 @@ document.addEventListener('DOMContentLoaded', () => {
   async function cleanupDuplicatesFromDatabase(duplicates) {
     for (const dup of duplicates) {
       try {
-        await deleteStudentProfile(dup.id);
-        console.log(`Successfully deleted duplicate row from Supabase: ${dup.fullName} (${dup.id})`);
+        const batch = dup.courseYear || activeBatch;
+        await deleteStudentProfile(dup.id, batch);
+        console.log(`Successfully deleted duplicate row from Supabase: ${dup.fullName} (${dup.id}) (${batch})`);
       } catch (err) {
         console.error(`Failed to delete duplicate row ${dup.id} from Supabase:`, err);
       }
@@ -495,6 +504,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Search & Filters listener
   searchInput.addEventListener('input', applyFiltersAndSort);
+  filterBatch.addEventListener('change', async () => {
+    activeBatch = filterBatch.value;
+    await loadDashboardData();
+  });
   filterDept.addEventListener('change', applyFiltersAndSort);
   sortOrder.addEventListener('change', applyFiltersAndSort);
 
@@ -669,7 +682,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (student && confirm(`Are you sure you want to permanently delete the profile of ${student.fullName}? This cannot be undone.`)) {
           loadingOverlay.classList.add('active');
           try {
-            await deleteStudentProfile(id);
+            await deleteStudentProfile(id, student.courseYear || activeBatch);
             toast.show("Record deleted successfully.", "success");
             await loadDashboardData();
           } catch (err) {
@@ -699,6 +712,8 @@ document.addEventListener('DOMContentLoaded', () => {
     editDept.value = student.department;
     editPhone.value = student.phoneNumber;
     editEmail.value = student.email;
+    editDob.value = student.dob || "";
+    editCourseYear.value = student.courseYear || activeBatch;
     editBio.value = student.aboutMe || "";
     editBlood.value = student.bloodGroup || "";
     editAddress.value = student.address || "";
@@ -779,6 +794,8 @@ document.addEventListener('DOMContentLoaded', () => {
       department: editDept.value,
       phoneNumber: editPhone.value.trim(),
       email: editEmail.value.trim(),
+      dob: editDob.value,
+      courseYear: editCourseYear.value,
       aboutMe: editBio.value.trim(),
       bloodGroup: editBlood.value,
       address: editAddress.value.trim(),
@@ -828,7 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (loadingText) {
         loadingText.textContent = "Saving changes to student profile...";
       }
-      await updateStudentProfile(id, updatedFields);
+      await updateStudentProfile(id, updatedFields, editCourseYear.value);
       closeEditModal();
       toast.show("Student details updated successfully.", "success");
       await loadDashboardData();
@@ -974,11 +991,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const imageUrl = result.data.url;
 
+      // Find student to resolve batch
+      const student = studentsData.find(s => s.id === studentId);
+      const batch = student ? (student.courseYear || activeBatch) : activeBatch;
+
       // Update student profile document
       if (loadingText) {
         loadingText.textContent = "Saving image link to student profile...";
       }
-      await updateStudentProfile(studentId, { photoUrl: imageUrl });
+      await updateStudentProfile(studentId, { photoUrl: imageUrl }, batch);
 
       toast.show("Profile image uploaded successfully!", "success");
       await loadDashboardData();
