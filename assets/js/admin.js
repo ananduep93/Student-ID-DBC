@@ -445,7 +445,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (scoreA !== scoreB) {
         return scoreB - scoreA;
       }
-      return new Date(b.submissionDate) - new Date(a.submissionDate);
+      const dateA = a.submissionDate || a.created_at || 0;
+      const dateB = b.submissionDate || b.created_at || 0;
+      return new Date(dateB) - new Date(dateA);
     });
 
     const cleanData = [];
@@ -537,11 +539,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Sort
-    if (sort === 'NEWEST') {
-      filteredData.sort((a, b) => new Date(b.submissionDate) - new Date(a.submissionDate));
-    } else if (sort === 'OLDEST') {
-      filteredData.sort((a, b) => new Date(a.submissionDate) - new Date(b.submissionDate));
-    } else if (sort === 'ALPHA') {
+    const getStudentDate = (s) => s.submissionDate || s.created_at || 0;
+    const sortVal = sort || 'NEWEST';
+
+    if (sortVal === 'NEWEST') {
+      filteredData.sort((a, b) => new Date(getStudentDate(b)) - new Date(getStudentDate(a)));
+    } else if (sortVal === 'OLDEST') {
+      filteredData.sort((a, b) => new Date(getStudentDate(a)) - new Date(getStudentDate(b)));
+    } else if (sortVal === 'ALPHA') {
       filteredData.sort((a, b) => a.fullName.localeCompare(b.fullName));
     }
 
