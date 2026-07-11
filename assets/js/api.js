@@ -1,4 +1,4 @@
-import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config.js';
+import { SUPABASE_URL, SUPABASE_ANON_KEY, IMAGEBB_API_KEY } from './config.js';
 
 // ─── Timeout Helper ──────────────────────────────────────────────────────────
 
@@ -480,19 +480,19 @@ export const getImagebbApiKey = async () => {
       );
       if (res.status === 404) {
         console.warn("passwords table not found in Supabase (404) for imagebb_api_key.");
-        return null;
+        return IMAGEBB_API_KEY || null;
       }
       if (!res.ok) {
         throw new Error(`Supabase fetch failed: ${res.status}`);
       }
       const data = await res.json();
-      return data.length > 0 ? data[0].password : null;
+      return (data.length > 0 && data[0].password) ? data[0].password : (IMAGEBB_API_KEY || null);
     } catch (error) {
       console.error("Supabase get API key error, using fallback:", error);
-      return null;
+      return IMAGEBB_API_KEY || null;
     }
   } else {
-    return null;
+    return IMAGEBB_API_KEY || null;
   }
 };
 
