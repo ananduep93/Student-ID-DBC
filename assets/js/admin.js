@@ -819,12 +819,32 @@ document.addEventListener('DOMContentLoaded', () => {
       // Check if a new file is chosen for upload
       const file = editPhotoFile.files[0];
       if (file) {
+        let uploadFile = file;
+        const maxBytes = 5 * 1024 * 1024;
+        
+        if (file.size > maxBytes) {
+          try {
+            showCompressionUI(file.size);
+            uploadFile = await compressImageIfNeeded(file, (state) => {
+              updateCompressionUI(state);
+            });
+            toast.show("Image optimized under 5MB!", "success");
+          } catch (err) {
+            toast.show("Image optimization failed: " + err.message, "error");
+            hideCompressionUI();
+            loadingOverlay.classList.remove('active');
+            return;
+          } finally {
+            hideCompressionUI();
+          }
+        }
+
         if (loadingText) {
           loadingText.textContent = "Uploading new photo to ImgBB...";
         }
         
         const formData = new FormData();
-        formData.append("image", file);
+        formData.append("image", uploadFile);
         
         const apiKey = await getImagebbApiKey();
         if (!apiKey) {
@@ -949,19 +969,180 @@ document.addEventListener('DOMContentLoaded', () => {
   const capturedSaveBtn = document.getElementById('captured-save-btn');
   const capturedRetakeBtn = document.getElementById('captured-retake-btn');
 
+  /**
+   * Client-side Image Compression Pipeline
+   * Compresses images dynamically in the browser to fit ImgBB's 5MB upload constraint.
+   */
+  async function compressImageIfNeeded(file, progressCallback) {
+    const maxBytes = 5 * 1024 * 1024;
+    const targetBytes = 4.7 * 1024 * 1024; // 4.7 MB target safety margin
+
+    if (file.size <= maxBytes) {
+      return file;
+    }
+
+    console.log(`Image size (${(file.size / 1024 / 1024).toFixed(2)} MB) exceeds 5MB. Starting compression...`);
+
+    const image = await new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = (err) => reject(new Error("Failed to load image file for compression."));
+      img.src = URL.createObjectURL(file);
+    });
+
+    let width = image.width;
+    let height = image.height;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let quality = 0.95;
+    let scale = 1.0;
+    let currentBlob = null;
+    let currentSize = file.size;
+
+    // Convert PNG to JPEG to achieve file size reduction
+    const outputType = (file.type === 'image/png') ? 'image/jpeg' : file.type;
+    const outputExt = (file.type === 'image/png') ? 'jpg' : (file.name ? file.name.split('.').pop() : 'jpg');
+    const outputName = (file.name ? file.name.replace(/\.[^/.]+$/, "") : "captured_photo") + `_compressed.${outputExt}`;
+
+    let iteration = 0;
+    const maxIterations = 15;
+
+    while (currentSize > targetBytes && iteration < maxIterations) {
+      iteration++;
+      
+      const drawWidth = Math.round(width * scale);
+      const drawHeight = Math.round(height * scale);
+      
+      canvas.width = drawWidth;
+      canvas.height = drawHeight;
+      
+      ctx.clearRect(0, 0, drawWidth, drawHeight);
+      ctx.drawImage(image, 0, 0, drawWidth, drawHeight);
+
+      currentBlob = await new Promise((resolve) => {
+        canvas.toBlob((blob) => resolve(blob), outputType, quality);
+      });
+
+      if (!currentBlob) {
+        throw new Error("Canvas export failed.");
+      }
+
+      currentSize = currentBlob.size;
+      
+      const percentReduced = Math.round(((file.size - currentSize) / file.size) * 100);
+      if (progressCallback) {
+        progressCallback({
+          originalSize: file.size,
+          currentSize: currentSize,
+          percentReduced: percentReduced,
+          progress: Math.min(95, (iteration / maxIterations) * 80 + (percentReduced * 0.2))
+        });
+      }
+
+      // Adjust parameters for next iteration
+      if (quality > 0.4) {
+        quality -= 0.15;
+      } else {
+        scale -= 0.15;
+        quality = 0.8;
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 80));
+    }
+
+    if (progressCallback) {
+      progressCallback({
+        originalSize: file.size,
+        currentSize: currentSize,
+        percentReduced: Math.round(((file.size - currentSize) / file.size) * 100),
+        progress: 100
+      });
+    }
+
+    URL.revokeObjectURL(image.src);
+
+    if (currentSize > maxBytes) {
+      throw new Error(`Unable to compress image below 5MB limit. Final size: ${(currentSize / 1024 / 1024).toFixed(2)} MB.`);
+    }
+
+    return new File([currentBlob], outputName, {
+      type: outputType,
+      lastModified: Date.now()
+    });
+  }
+
+  function showCompressionUI(originalSize) {
+    const spinner = document.getElementById('loading-spinner');
+    const text = document.getElementById('loading-text');
+    const panel = document.getElementById('compression-panel');
+    const origSizeSpan = document.getElementById('comp-orig-size');
+    const currSizeSpan = document.getElementById('comp-curr-size');
+    const progressBar = document.getElementById('comp-progress-bar');
+    const percentage = document.getElementById('comp-percentage');
+
+    if (spinner) spinner.style.display = 'none';
+    if (text) text.style.display = 'none';
+    
+    if (origSizeSpan) origSizeSpan.textContent = `${(originalSize / 1024 / 1024).toFixed(2)} MB`;
+    if (currSizeSpan) currSizeSpan.textContent = "0.00 MB";
+    if (progressBar) progressBar.style.width = "0%";
+    if (percentage) percentage.textContent = "0% Reduced";
+    
+    if (panel) {
+      panel.style.display = 'flex';
+    }
+    loadingOverlay.classList.add('active');
+  }
+
+  function updateCompressionUI(state) {
+    const currSizeSpan = document.getElementById('comp-curr-size');
+    const progressBar = document.getElementById('comp-progress-bar');
+    const percentage = document.getElementById('comp-percentage');
+
+    if (currSizeSpan) currSizeSpan.textContent = `${(state.currentSize / 1024 / 1024).toFixed(2)} MB`;
+    if (progressBar) progressBar.style.width = `${state.progress}%`;
+    if (percentage) percentage.textContent = `${state.percentReduced}% Reduced`;
+  }
+
+  function hideCompressionUI() {
+    const spinner = document.getElementById('loading-spinner');
+    const text = document.getElementById('loading-text');
+    const panel = document.getElementById('compression-panel');
+
+    if (panel) panel.style.display = 'none';
+    if (spinner) spinner.style.display = 'block';
+    if (text) text.style.display = 'block';
+  }
+
   // Shared function to upload file to ImgBB and update student profile
   async function uploadAndSavePhoto(file, studentId) {
     // Validate file type & size (5MB max)
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (!validTypes.includes(file.type)) {
       toast.show("Please upload a valid image file (JPG, PNG, or WebP).", "error");
       return;
     }
     
+    let uploadFile = file;
     const maxBytes = 5 * 1024 * 1024;
+    
     if (file.size > maxBytes) {
-      toast.show("File size exceeds 5MB limit.", "error");
-      return;
+      try {
+        showCompressionUI(file.size);
+        uploadFile = await compressImageIfNeeded(file, (state) => {
+          updateCompressionUI(state);
+        });
+        toast.show("Image optimized under 5MB!", "success");
+      } catch (err) {
+        toast.show("Image optimization failed: " + err.message, "error");
+        hideCompressionUI();
+        loadingOverlay.classList.remove('active');
+        return;
+      } finally {
+        hideCompressionUI();
+      }
     }
 
     loadingOverlay.classList.add('active');
@@ -973,7 +1154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       // Create Form Data for ImgBB API
       const formData = new FormData();
-      formData.append("image", file);
+      formData.append("image", uploadFile);
 
       const apiKey = await getImagebbApiKey();
       if (!apiKey) {

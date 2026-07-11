@@ -11,8 +11,25 @@
 
   <!-- Loading Overlay -->
   <div id="loading-overlay" class="loading-overlay" aria-hidden="true">
-    <div class="spinner"></div>
-    <div class="loading-text">Processing request...</div>
+    <div id="loading-spinner" class="spinner"></div>
+    <div id="loading-text" class="loading-text">Processing request...</div>
+    
+    <!-- Client-side Image Compression Panel -->
+    <div id="compression-panel" style="display: none; width: 90%; max-width: 400px; background: rgba(255,255,255,0.75); backdrop-filter: blur(12px); border: 1px solid var(--glass-border); padding: 2rem; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; flex-direction: column; gap: 1rem;">
+      <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-primary);">Optimizing Large Image</h3>
+      <p style="margin: 0; font-size: 0.85rem; color: var(--text-secondary);">Image exceeds 5MB limit. Compressing to fit ImgBB constraints...</p>
+      
+      <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--text-secondary); margin-top: 1rem;">
+        <span>Original: <span id="comp-orig-size">0 MB</span></span>
+        <span>Compressed: <span id="comp-curr-size">0 MB</span></span>
+      </div>
+      
+      <div style="width: 100%; height: 8px; background: rgba(0,0,0,0.05); border-radius: 4px; overflow: hidden; margin-top: 0.5rem;">
+        <div id="comp-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary)); transition: width 0.15s ease-out;"></div>
+      </div>
+      
+      <div style="font-size: 0.8rem; font-weight: 700; color: var(--accent-primary);" id="comp-percentage">0% Reduced</div>
+    </div>
   </div>
 
   <!-- Mesh background gradients -->
