@@ -851,13 +851,13 @@ document.addEventListener('DOMContentLoaded', () => {
           throw new Error("ImgBB API key not configured in passwords table.");
         }
 
-        // Timeout set to 60 seconds (60000ms) to prevent timeout failures on slow connections
+        // Timeout set to 120 seconds (120000ms) to prevent timeout failures on slow connections
         const response = await Promise.race([
           fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
             method: "POST",
             body: formData
           }),
-          new Promise((_, reject) => setTimeout(() => reject(new Error("ImgBB upload timed out.")), 60000))
+          new Promise((_, reject) => setTimeout(() => reject(new Error("ImgBB upload timed out.")), 120000))
         ]);
 
         const result = await response.json();
@@ -996,8 +996,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
-    let quality = 0.95;
+    // Set initial quality and scale dynamically to speed up compression for very large files
+    let quality = 0.90;
     let scale = 1.0;
+    
+    if (file.size > 15 * 1024 * 1024) { // > 15MB
+      scale = 0.5;
+      quality = 0.75;
+    } else if (file.size > 10 * 1024 * 1024) { // 10MB - 15MB
+      scale = 0.65;
+      quality = 0.8;
+    } else if (file.size > 7 * 1024 * 1024) { // 7MB - 10MB
+      scale = 0.8;
+      quality = 0.85;
+    }
+
     let currentBlob = null;
     let currentSize = file.size;
 
@@ -1167,7 +1180,7 @@ document.addEventListener('DOMContentLoaded', () => {
           method: "POST",
           body: formData
         }),
-        new Promise((_, reject) => setTimeout(() => reject(new Error("ImgBB upload timed out.")), 60000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error("ImgBB upload timed out.")), 120000))
       ]);
 
       const result = await response.json();
